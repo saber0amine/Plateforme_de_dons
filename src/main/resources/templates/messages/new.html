@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nouveau message')}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0"><i class="bi bi-envelope-plus"></i> Nouveau message</h4>
+                        </div>
+                        <div class="card-body">
+                            <div th:if="${message.annonceTitre != null}" class="alert alert-info">
+                                <i class="bi bi-tag"></i> À propos de : <strong th:text="${message.annonceTitre}"></strong>
+                            </div>
+
+                            <form th:action="@{/messages}" th:object="${message}" method="post">
+                                <input type="hidden" th:field="*{receiverId}">
+                                <input type="hidden" th:field="*{annonceId}">
+
+                                <div class="mb-3">
+                                    <label class="form-label">Destinataire</label>
+                                    <div class="form-control bg-light" th:text="${message.receiverUsername}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="content" class="form-label">Votre message *</label>
+                                    <textarea class="form-control" id="content" th:field="*{content}" rows="5"
+                                              th:classappend="${#fields.hasErrors('content')} ? 'is-invalid'"
+                                              placeholder="Écrivez votre message ici..." required></textarea>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a th:href="@{/messages}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send"></i> Envoyer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

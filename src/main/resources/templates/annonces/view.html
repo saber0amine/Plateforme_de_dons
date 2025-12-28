@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${annonce.titre})}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/annonces}">Annonces</a></li>
+                    <li class="breadcrumb-item active" th:text="${annonce.titre}"></li>
+                </ol>
+            </nav>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h1 class="card-title" th:text="${annonce.titre}"></h1>
+                                <div>
+                                    <span th:if="${annonce.reserved}" class="badge bg-warning fs-6">Réservé</span>
+                                    <span th:if="${annonce.given}" class="badge bg-success fs-6">Donné</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <span class="badge bg-secondary fs-6" th:text="${annonce.etatObjet.displayName}"></span>
+                                <span class="badge bg-info fs-6" th:text="${annonce.modeLivraison.displayName}"></span>
+                                <span class="badge bg-primary fs-6">
+                                    <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
+                                </span>
+                            </div>
+
+                            <h5>Description</h5>
+                            <p class="card-text" th:text="${annonce.description}" style="white-space: pre-line;"></p>
+
+                            <div th:if="${!annonce.keywords.isEmpty()}" class="mt-4">
+                                <h5>Mots-clés</h5>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a th:each="keyword : ${annonce.keywords}"
+                                       th:href="@{/search(keywords=${keyword})}"
+                                       class="badge bg-light text-dark text-decoration-none"
+                                       th:text="${keyword}"></a>
+                                </div>
+                            </div>
+
+                            <div th:if="${annonce.lotId != null}" class="mt-4">
+                                <h5>Fait partie d'un lot</h5>
+                                <a th:href="@{/lots/{id}(id=${annonce.lotId})}" class="btn btn-outline-primary">
+                                    <i class="bi bi-box-seam"></i> Voir le lot complet
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> Publié le
+                                <span th:text="${#temporals.format(annonce.datePublication, 'dd MMMM yyyy à HH:mm')}"></span>
+                                <span th:if="${annonce.favoriteCount > 0}">
+                                    | <i class="bi bi-heart-fill text-danger"></i>
+                                    <span th:text="${annonce.favoriteCount}"></span> favoris
+                                </span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-person-circle"></i> Donneur</h5>
+                        </div>
+                        <div class="card-body">
+                            <h5 th:text="${annonce.ownerUsername}"></h5>
+
+                            <div sec:authorize="isAuthenticated()" th:unless="${isOwner}">
+                                <a th:href="@{/messages/new(userId=${annonce.ownerId}, annonceId=${annonce.id})}"
+                                   class="btn btn-primary w-100 mb-2">
+                                    <i class="bi bi-envelope"></i> Contacter
+                                </a>
+
+                                <form th:if="${!isFavorite}" th:action="@{/favorites/add/{id}(id=${annonce.id})}" method="post">
+                                    <button type="submit" class="btn btn-outline-danger w-100">
+                                        <i class="bi bi-heart"></i> Ajouter aux favoris
+                                    </button>
+                                </form>
+
+                                <form th:if="${isFavorite}" th:action="@{/favorites/remove/{id}(id=${annonce.id})}" method="post">
+                                    <button type="submit" class="btn btn-danger w-100">
+                                        <i class="bi bi-heart-fill"></i> Retirer des favoris
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div th:if="${isOwner}" sec:authorize="isAuthenticated()">
+                                <a th:href="@{/annonces/{id}/edit(id=${annonce.id})}" class="btn btn-warning w-100 mb-2">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a>
+
+                                <form th:unless="${annonce.reserved || annonce.given}"
+                                      th:action="@{/annonces/{id}/reserve(id=${annonce.id})}" method="post" class="mb-2">
+                                    <button type="submit" class="btn btn-info w-100">
+                                        <i class="bi bi-bookmark"></i> Marquer comme réservé
+                                    </button>
+                                </form>
+
+                                <form th:unless="${annonce.given}"
+                                      th:action="@{/annonces/{id}/give(id=${annonce.id})}" method="post" class="mb-2">
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="bi bi-check-circle"></i> Marquer comme donné
+                                    </button>
+                                </form>
+
+                                <form th:action="@{/annonces/{id}/delete(id=${annonce.id})}" method="post"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?');">
+                                    <button type="submit" class="btn btn-outline-danger w-100">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div sec:authorize="!isAuthenticated()" class="text-center">
+                                <p class="text-muted">Connectez-vous pour contacter le donneur</p>
+                                <a th:href="@{/login}" class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-in-right"></i> Connexion
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

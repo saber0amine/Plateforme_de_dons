@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Recherche')}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <h1 class="mb-4"><i class="bi bi-search"></i> Rechercher des annonces</h1>
+
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <form th:action="@{/search}" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="query" class="form-label">Recherche textuelle</label>
+                                <input type="text" class="form-control" id="query" name="query"
+                                       th:value="${criteria?.query}" placeholder="Mot-clé, titre, description...">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="zone" class="form-label">Zone géographique</label>
+                                <input type="text" class="form-control" id="zone" name="zone"
+                                       th:value="${criteria?.zoneGeographique}" placeholder="Ville, région...">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="etat" class="form-label">État de l'objet</label>
+                                <select class="form-select" id="etat" name="etat">
+                                    <option value="">Tous les états</option>
+                                    <option th:each="e : ${etats}" th:value="${e}" th:text="${e.displayName}"
+                                            th:selected="${criteria?.etatObjet == e}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="mode" class="form-label">Mode de remise</label>
+                                <select class="form-select" id="mode" name="mode">
+                                    <option value="">Tous les modes</option>
+                                    <option th:each="m : ${modes}" th:value="${m}" th:text="${m.displayName}"
+                                            th:selected="${criteria?.modeLivraison == m}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="keywords" class="form-label">Mots-clés</label>
+                                <input type="text" class="form-control" id="keywords" name="keywords"
+                                       th:value="${criteria?.keywordsInput}" placeholder="meubles, déco...">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <a th:href="@{/search}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Réinitialiser
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Rechercher
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div sec:authorize="isAuthenticated()" th:if="${criteria != null && !criteria.isEmpty()}" class="mb-4">
+                <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#saveSearchModal">
+                    <i class="bi bi-bookmark-plus"></i> Sauvegarder cette recherche
+                </button>
+            </div>
+
+            <div th:if="${annonces.isEmpty()}" class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Aucun résultat trouvé pour votre recherche.
+            </div>
+
+            <div th:unless="${annonces.isEmpty()}">
+                <p class="text-muted mb-3">
+                    <span th:text="${annonces.totalElements}"></span> résultat(s) trouvé(s)
+                </p>
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                    <div class="col" th:each="annonce : ${annonces.content}">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="card-title">
+                                        <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                                           th:text="${annonce.titre}" class="text-decoration-none stretched-link"></a>
+                                    </h5>
+                                    <span th:if="${annonce.reserved}" class="badge bg-warning">Réservé</span>
+                                </div>
+                                <p class="card-text text-muted small" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
+                                    <span class="badge bg-info" th:text="${annonce.modeLivraison.displayName}"></span>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
+                                </small>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <small class="text-muted">
+                                    <i class="bi bi-person"></i> <span th:text="${annonce.ownerUsername}"></span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/search')}"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Sauvegarder recherche -->
+    <div class="modal fade" id="saveSearchModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form th:action="@{/search/save}" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Sauvegarder la recherche</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="query" th:value="${criteria?.query}">
+                        <input type="hidden" name="zone" th:value="${criteria?.zoneGeographique}">
+                        <input type="hidden" name="etat" th:value="${criteria?.etatObjet}">
+                        <input type="hidden" name="mode" th:value="${criteria?.modeLivraison}">
+                        <input type="hidden" name="keywords" th:value="${criteria?.keywordsInput}">
+
+                        <div class="mb-3">
+                            <label for="searchName" class="form-label">Nom de la recherche *</label>
+                            <input type="text" class="form-control" id="searchName" name="name" required
+                                   placeholder="Ex: Meubles à Paris">
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="notifications" name="notifications" value="true" checked>
+                            <label class="form-check-label" for="notifications">
+                                Recevoir des notifications pour les nouvelles annonces correspondantes
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-bookmark-plus"></i> Sauvegarder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

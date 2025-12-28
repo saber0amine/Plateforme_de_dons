@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Messages')}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="bi bi-envelope"></i> Messages
+                    <span th:if="${unreadCount > 0}" class="badge bg-danger" th:text="${unreadCount}"></span>
+                </h1>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-people"></i> Conversations</h5>
+                        </div>
+                        <div class="list-group list-group-flush" th:if="${!conversations.isEmpty()}">
+                            <a th:each="user : ${conversations}"
+                               th:href="@{/messages/conversation/{id}(id=${user.id})}"
+                               class="list-group-item list-group-item-action d-flex align-items-center">
+                                <i class="bi bi-person-circle me-2 fs-4"></i>
+                                <span th:text="${user.username}"></span>
+                            </a>
+                        </div>
+                        <div th:if="${conversations.isEmpty()}" class="card-body text-center text-muted">
+                            <i class="bi bi-chat-dots fs-1"></i>
+                            <p>Aucune conversation</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-clock-history"></i> Messages récents</h5>
+                        </div>
+                        <div th:if="${messages.isEmpty()}" class="card-body text-center py-5">
+                            <i class="bi bi-inbox display-1 text-muted"></i>
+                            <h4 class="mt-3">Aucun message</h4>
+                            <p class="text-muted">Contactez un donneur pour démarrer une conversation</p>
+                        </div>
+                        <div class="list-group list-group-flush" th:unless="${messages.isEmpty()}">
+                            <div th:each="msg : ${messages.content}"
+                                 class="list-group-item" th:classappend="${!msg.read} ? 'list-group-item-light'">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <span th:if="${!msg.read}" class="badge bg-primary me-1">Nouveau</span>
+                                            <span th:text="${msg.senderUsername}"></span>
+                                            <i class="bi bi-arrow-right"></i>
+                                            <span th:text="${msg.receiverUsername}"></span>
+                                        </h6>
+                                        <p class="mb-1 text-muted" th:text="${#strings.abbreviate(msg.content, 100)}"></p>
+                                        <small th:if="${msg.annonceTitre != null}" class="text-info">
+                                            <i class="bi bi-tag"></i> <span th:text="${msg.annonceTitre}"></span>
+                                        </small>
+                                    </div>
+                                    <small class="text-muted" th:text="${#temporals.format(msg.sentAt, 'dd/MM HH:mm')}"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/messages')}"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

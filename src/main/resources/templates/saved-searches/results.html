@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Résultats - ' + ${savedSearch.name})}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/saved-searches}">Recherches sauvegardées</a></li>
+                    <li class="breadcrumb-item active" th:text="${savedSearch.name}"></li>
+                </ol>
+            </nav>
+
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h4><i class="bi bi-bookmark-fill"></i> <span th:text="${savedSearch.name}"></span></h4>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span th:if="${savedSearch.query}" class="badge bg-light text-dark">
+                            Recherche : <span th:text="${savedSearch.query}"></span>
+                        </span>
+                        <span th:if="${savedSearch.zoneGeographique}" class="badge bg-light text-dark">
+                            Zone : <span th:text="${savedSearch.zoneGeographique}"></span>
+                        </span>
+                        <span th:if="${savedSearch.etatObjet}" class="badge bg-light text-dark">
+                            État : <span th:text="${savedSearch.etatObjet.displayName}"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${annonces.isEmpty()}" class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Aucune annonce ne correspond actuellement à cette recherche.
+            </div>
+
+            <div th:unless="${annonces.isEmpty()}">
+                <p class="text-muted mb-3">
+                    <span th:text="${annonces.totalElements}"></span> résultat(s)
+                </p>
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                    <div class="col" th:each="annonce : ${annonces.content}">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                                       th:text="${annonce.titre}" class="text-decoration-none stretched-link"></a>
+                                </h5>
+                                <p class="card-text text-muted small" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <small class="text-muted">
+                                    <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/saved-searches/' + ${savedSearch.id} + '/execute')}"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

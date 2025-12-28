@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Modifier l\'annonce' : 'Nouvelle annonce')}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">
+                                <i class="bi" th:classappend="${editing} ? 'bi-pencil' : 'bi-plus-circle'"></i>
+                                <span th:text="${editing} ? 'Modifier l\'annonce' : 'Créer une nouvelle annonce'"></span>
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <form th:action="${editing} ? @{/annonces/{id}(id=${annonce.id})} : @{/annonces}"
+                                  th:object="${annonce}" method="post">
+
+                                <div class="mb-3">
+                                    <label for="titre" class="form-label">Titre *</label>
+                                    <input type="text" class="form-control" id="titre"
+                                           th:field="*{titre}" th:classappend="${#fields.hasErrors('titre')} ? 'is-invalid'"
+                                           placeholder="Ex: Canapé 3 places en bon état" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('titre')}" th:errors="*{titre}"></div>
+                                    <small class="text-muted">Entre 5 et 100 caractères</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description *</label>
+                                    <textarea class="form-control" id="description" rows="5"
+                                              th:field="*{description}" th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                                              placeholder="Décrivez votre objet en détail : dimensions, couleur, marque, raison du don..." required></textarea>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                                    <small class="text-muted">Entre 10 et 2000 caractères</small>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="etatObjet" class="form-label">État de l'objet *</label>
+                                        <select class="form-select" id="etatObjet"
+                                                th:field="*{etatObjet}" th:classappend="${#fields.hasErrors('etatObjet')} ? 'is-invalid'" required>
+                                            <option value="">Sélectionnez l'état</option>
+                                            <option th:each="etat : ${etats}" th:value="${etat}" th:text="${etat.displayName}"></option>
+                                        </select>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('etatObjet')}" th:errors="*{etatObjet}"></div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="modeLivraison" class="form-label">Mode de remise *</label>
+                                        <select class="form-select" id="modeLivraison"
+                                                th:field="*{modeLivraison}" th:classappend="${#fields.hasErrors('modeLivraison')} ? 'is-invalid'" required>
+                                            <option value="">Sélectionnez le mode</option>
+                                            <option th:each="mode : ${modes}" th:value="${mode}" th:text="${mode.displayName}"></option>
+                                        </select>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('modeLivraison')}" th:errors="*{modeLivraison}"></div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="zoneGeographique" class="form-label">Zone géographique *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                        <input type="text" class="form-control" id="zoneGeographique"
+                                               th:field="*{zoneGeographique}" th:classappend="${#fields.hasErrors('zoneGeographique')} ? 'is-invalid'"
+                                               placeholder="Ex: Paris 15e, Lyon, Bordeaux..." required>
+                                    </div>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('zoneGeographique')}" th:errors="*{zoneGeographique}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="keywordsInput" class="form-label">Mots-clés</label>
+                                    <input type="text" class="form-control" id="keywordsInput"
+                                           th:field="*{keywordsInput}"
+                                           placeholder="Ex: meubles, décoration, vintage (séparés par des virgules)">
+                                    <small class="text-muted">Ajoutez des mots-clés pour faciliter la recherche (séparés par des virgules)</small>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a th:href="${editing} ? @{/annonces/{id}(id=${annonce.id})} : @{/annonces}"
+                                       class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi" th:classappend="${editing} ? 'bi-check-circle' : 'bi-plus-circle'"></i>
+                                        <span th:text="${editing} ? 'Enregistrer les modifications' : 'Publier l\'annonce'"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

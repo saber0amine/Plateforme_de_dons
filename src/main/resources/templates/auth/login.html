@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Connexion')}"></head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 d-flex align-items-center py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-4">
+                                <i class="bi bi-person-circle display-1 text-primary"></i>
+                                <h2 class="mt-2">Connexion</h2>
+                            </div>
+
+                            <div th:if="${param.error}" class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> Nom d'utilisateur ou mot de passe incorrect.
+                            </div>
+
+                            <div th:if="${param.logout}" class="alert alert-success">
+                                <i class="bi bi-check-circle"></i> Vous avez été déconnecté avec succès.
+                            </div>
+
+                            <div th:if="${success}" class="alert alert-success">
+                                <i class="bi bi-check-circle"></i> <span th:text="${success}"></span>
+                            </div>
+
+                            <form th:action="@{/login}" method="post">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Nom d'utilisateur</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                        <input type="text" class="form-control" id="username" name="username"
+                                               placeholder="Votre nom d'utilisateur" required autofocus>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Mot de passe</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                        <input type="password" class="form-control" id="password" name="password"
+                                               placeholder="Votre mot de passe" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                                    <label class="form-check-label" for="remember-me">Se souvenir de moi</label>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 mb-3">
+                                    <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                                </button>
+                            </form>
+
+                            <hr>
+
+                            <p class="text-center mb-0">
+                                Pas encore inscrit ?
+                                <a th:href="@{/register}" class="text-decoration-none">Créer un compte</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

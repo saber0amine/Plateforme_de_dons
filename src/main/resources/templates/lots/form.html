@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Modifier le lot' : 'Nouveau lot')}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">
+                                <i class="bi" th:classappend="${editing} ? 'bi-pencil' : 'bi-plus-circle'"></i>
+                                <span th:text="${editing} ? 'Modifier le lot' : 'Créer un nouveau lot'"></span>
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <form th:action="${editing} ? @{/lots/{id}(id=${lot.id})} : @{/lots}"
+                                  th:object="${lot}" method="post">
+
+                                <div class="mb-3">
+                                    <label for="titre" class="form-label">Titre du lot *</label>
+                                    <input type="text" class="form-control" id="titre"
+                                           th:field="*{titre}" th:classappend="${#fields.hasErrors('titre')} ? 'is-invalid'"
+                                           placeholder="Ex: Lot de meubles de salon" required>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('titre')}" th:errors="*{titre}"></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" rows="3"
+                                              th:field="*{description}"
+                                              placeholder="Décrivez le lot (optionnel)..."></textarea>
+                                </div>
+
+                                <div class="mb-4" th:unless="${editing}">
+                                    <label class="form-label">Sélectionnez les annonces à inclure</label>
+
+                                    <div th:if="${availableAnnonces.isEmpty()}" class="alert alert-warning">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        Vous n'avez pas d'annonces disponibles. Créez d'abord des annonces avant de les regrouper en lot.
+                                    </div>
+
+                                    <div class="row row-cols-1 row-cols-md-2 g-2" th:unless="${availableAnnonces.isEmpty()}">
+                                        <div class="col" th:each="annonce : ${availableAnnonces}">
+                                            <div class="form-check border rounded p-3">
+                                                <input class="form-check-input" type="checkbox"
+                                                       th:id="'annonce-' + ${annonce.id}"
+                                                       name="annonceIds"
+                                                       th:value="${annonce.id}">
+                                                <label class="form-check-label w-100" th:for="'annonce-' + ${annonce.id}">
+                                                    <strong th:text="${annonce.titre}"></strong>
+                                                    <br>
+                                                    <small class="text-muted" th:text="${#strings.abbreviate(annonce.description, 50)}"></small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a th:href="${editing} ? @{/lots/{id}(id=${lot.id})} : @{/lots}"
+                                       class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" th:unless="${availableAnnonces.isEmpty() && !editing}">
+                                        <i class="bi" th:classappend="${editing} ? 'bi-check-circle' : 'bi-plus-circle'"></i>
+                                        <span th:text="${editing} ? 'Enregistrer' : 'Créer le lot'"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
