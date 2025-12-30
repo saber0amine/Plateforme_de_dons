@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${lot.titre})}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="flex-grow-1 py-4">
+    <div class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}">Accueil</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/lots}">Lots</a></li>
+                <li class="breadcrumb-item active" th:text="${lot.titre}"></li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow mb-4">
+                    <div th:if="${lot.images != null && !lot.images.isEmpty()}" id="lotImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button th:each="image, iterStat : ${lot.images}" type="button"
+                                    th:attr="data-bs-target='#lotImageCarousel', data-bs-slide-to=${iterStat.index}"
+                                    th:classappend="${iterStat.first} ? 'active' : ''"
+                                    th:aria-label="'Slide ' + ${iterStat.index + 1}"></button>
+                        </div>
+                        <div class="carousel-inner">
+                            <div th:each="image, iterStat : ${lot.images}" class="carousel-item" th:classappend="${iterStat.first} ? 'active' : ''">
+                                <img th:src="@{/api/images/{id}(id=${image.id})}" class="d-block w-100" alt="Image" style="max-height: 400px; object-fit: contain; background-color: #f8f9fa;">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#lotImageCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Précédent</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#lotImageCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Suivant</span>
+                        </button>
+                    </div>
+
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h1 class="h4 mb-0" th:text="${lot.titre}"></h1>
+                        <span class="badge bg-primary fs-6" th:text="${#lists.size(lot.annonces)} + ' objet(s)'"></span>
+                    </div>
+                    <div class="card-body">
+                        <p th:if="${lot.description}" th:text="${lot.description}" class="lead"></p>
+
+                        <h5 class="mt-4 mb-3">Objets du lot</h5>
+
+                        <div th:if="${lot.annonces.isEmpty()}" class="alert alert-info">
+                            Ce lot ne contient pas encore d'objets.
+                        </div>
+
+                        <div class="row row-cols-1 row-cols-md-2 g-3" th:unless="${lot.annonces.isEmpty()}">
+                            <div class="col" th:each="annonce : ${lot.annonces}">
+                                <div class="card h-100 border">
+                                    <div th:if="${annonce.primaryImage != null}">
+                                        <img th:src="@{/api/images/{id}(id=${annonce.primaryImage.id})}"
+                                             class="card-img-top" alt="Image" style="height: 150px; object-fit: cover;">
+                                    </div>
+                                    <div th:unless="${annonce.primaryImage != null}" class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                                        <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                                               th:text="${annonce.titre}" class="text-decoration-none"></a>
+                                        </h6>
+                                        <p class="card-text small text-muted" th:text="${#strings.abbreviate(annonce.description, 60)}"></p>
+                                        <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
+                                    </div>
+                                    <div class="card-footer bg-transparent" th:if="${isOwner}">
+                                        <form th:action="@{/lots/{lotId}/remove-annonce/{annonceId}(lotId=${lot.id}, annonceId=${annonce.id})}"
+                                              method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-x"></i> Retirer du lot
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> Créé le
+                            <span th:text="${#temporals.format(lot.createdAt, 'dd MMMM yyyy')}"></span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-person-circle"></i> Propriétaire du lot</h5>
+                    </div>
+                    <div class="card-body">
+                        <h5 th:text="${lot.creatorUsername}"></h5>
+
+                        <div sec:authorize="isAuthenticated()" th:unless="${isOwner}">
+                            <a th:href="@{/messages/new(userId=${lot.creatorId})}" class="btn btn-primary w-100">
+                                <i class="bi bi-envelope"></i> Contacter
+                            </a>
+                        </div>
+
+                        <div th:if="${isOwner}" sec:authorize="isAuthenticated()">
+                            <a th:href="@{/lots/{id}/edit(id=${lot.id})}" class="btn btn-warning w-100 mb-2">
+                                <i class="bi bi-pencil"></i> Modifier
+                            </a>
+                            <form th:action="@{/lots/{id}/delete(id=${lot.id})}" method="post"
+                                  onsubmit="return confirm('Supprimer ce lot ? Les annonces seront conservées.');">
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    <i class="bi bi-trash"></i> Supprimer le lot
+                                </button>
+                            </form>
+                        </div>
+
+                        <div sec:authorize="!isAuthenticated()" class="text-center">
+                            <p class="text-muted">Connectez-vous pour contacter le propriétaire</p>
+                            <a th:href="@{/login}" class="btn btn-primary">
+                                <i class="bi bi-box-arrow-in-right"></i> Connexion
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

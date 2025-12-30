@@ -3,113 +3,126 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/layout :: head('Accueil')}"></head>
 <body class="d-flex flex-column min-vh-100">
-    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-    <main class="flex-grow-1">
-        <div class="bg-primary text-white py-5 mb-4">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-6">
-                        <h1 class="display-4 fw-bold">Donnez une seconde vie à vos objets</h1>
-                        <p class="lead">Plateforme gratuite de dons entre particuliers. Donnez ce dont vous n'avez plus besoin, trouvez ce qu'il vous faut.</p>
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                            <a th:href="@{/search}" class="btn btn-light btn-lg px-4 me-md-2">
-                                <i class="bi bi-search"></i> Rechercher
-                            </a>
-                            <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()" class="btn btn-outline-light btn-lg px-4">
-                                <i class="bi bi-plus-circle"></i> Donner un objet
-                            </a>
-                            <a th:href="@{/register}" sec:authorize="!isAuthenticated()" class="btn btn-outline-light btn-lg px-4">
-                                <i class="bi bi-person-plus"></i> S'inscrire
-                            </a>
-                        </div>
+<main class="flex-grow-1">
+    <div class="bg-primary text-white py-5 mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">Donnez une seconde vie à vos objets</h1>
+                    <p class="lead">Plateforme gratuite de dons entre particuliers. Donnez ce dont vous n'avez plus besoin, trouvez ce qu'il vous faut.</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        <a th:href="@{/search}" class="btn btn-light btn-lg px-4 me-md-2">
+                            <i class="bi bi-search"></i> Rechercher
+                        </a>
+                        <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()" class="btn btn-outline-light btn-lg px-4">
+                            <i class="bi bi-plus-circle"></i> Donner un objet
+                        </a>
+                        <a th:href="@{/register}" sec:authorize="!isAuthenticated()" class="btn btn-outline-light btn-lg px-4">
+                            <i class="bi bi-person-plus"></i> S'inscrire
+                        </a>
                     </div>
-                    <div class="col-lg-6 text-center">
-                        <i class="bi bi-gift display-1" style="font-size: 10rem; opacity: 0.5;"></i>
-                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="bi bi-gift display-1" style="font-size: 10rem; opacity: 0.5;"></i>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="container">
-            <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
 
-            <section class="mb-5">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2><i class="bi bi-clock-history"></i> Dernières annonces</h2>
-                    <a th:href="@{/annonces}" class="btn btn-outline-primary">Voir toutes les annonces</a>
-                </div>
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-clock-history"></i> Dernières annonces</h2>
+                <a th:href="@{/annonces}" class="btn btn-outline-primary">Voir toutes les annonces</a>
+            </div>
 
-                <div th:if="${#lists.isEmpty(annonces)}" class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> Aucune annonce pour le moment. Soyez le premier à donner !
-                </div>
+            <div th:if="${#lists.isEmpty(annonces)}" class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Aucune annonce pour le moment. Soyez le premier à donner !
+            </div>
 
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" th:unless="${#lists.isEmpty(annonces)}">
-                    <div class="col" th:each="annonce : ${annonces}">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <a th:href="@{/annonces/{id}(id=${annonce.id})}"
-                                       th:text="${annonce.titre}" class="text-decoration-none"></a>
-                                </h5>
-                                <p class="card-text text-muted" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
-                                <div class="d-flex flex-wrap gap-1 mb-2">
-                                    <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
-                                    <span class="badge bg-info" th:text="${annonce.modeLivraison.displayName}"></span>
-                                </div>
-                                <small class="text-muted">
-                                    <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
-                                </small>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" th:unless="${#lists.isEmpty(annonces)}">
+                <div class="col" th:each="annonce : ${annonces}">
+                    <div class="card h-100 shadow-sm">
+                        <!-- Image de l'annonce -->
+                        <div class="position-relative" style="height: 200px; overflow: hidden;">
+                            <img th:if="${annonce.imageUrl != null}"
+                                 th:src="@{${annonce.imageUrl}}"
+                                 class="card-img-top w-100 h-100"
+                                 style="object-fit: cover;"
+                                 th:alt="${annonce.titre}">
+                            <div th:unless="${annonce.imageUrl != null}"
+                                 class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
                             </div>
-                            <div class="card-footer bg-transparent">
-                                <small class="text-muted">
-                                    <i class="bi bi-person"></i> <span th:text="${annonce.ownerUsername}"></span>
-                                    <br>
-                                    <i class="bi bi-calendar"></i>
-                                    <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}"></span>
-                                </small>
+                        </div>
+
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                                   th:text="${annonce.titre}" class="text-decoration-none"></a>
+                            </h5>
+                            <p class="card-text text-muted" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
+                                <span class="badge bg-info" th:text="${annonce.modeLivraison.displayName}"></span>
                             </div>
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
+                            </small>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> <span th:text="${annonce.ownerUsername}"></span>
+                                <br>
+                                <i class="bi bi-calendar"></i>
+                                <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}"></span>
+                            </small>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <section class="mb-5">
-                <h2 class="text-center mb-4">Comment ça marche ?</h2>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="text-center p-4">
-                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                                <i class="bi bi-camera fs-1"></i>
-                            </div>
-                            <h4>1. Publiez votre annonce</h4>
-                            <p class="text-muted">Décrivez l'objet que vous souhaitez donner avec une description et l'état.</p>
+        <section class="mb-5">
+            <h2 class="text-center mb-4">Comment ça marche ?</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="text-center p-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-camera fs-1"></i>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center p-4">
-                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                                <i class="bi bi-chat-dots fs-1"></i>
-                            </div>
-                            <h4>2. Échangez</h4>
-                            <p class="text-muted">Discutez avec les personnes intéressées via notre messagerie interne.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center p-4">
-                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                                <i class="bi bi-hand-thumbs-up fs-1"></i>
-                            </div>
-                            <h4>3. Donnez</h4>
-                            <p class="text-muted">Remettez l'objet en main propre ou envoyez-le selon vos préférences.</p>
-                        </div>
+                        <h4>1. Publiez votre annonce</h4>
+                        <p class="text-muted">Décrivez l'objet que vous souhaitez donner avec une description et l'état.</p>
                     </div>
                 </div>
-            </section>
-        </div>
-    </main>
+                <div class="col-md-4">
+                    <div class="text-center p-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-chat-dots fs-1"></i>
+                        </div>
+                        <h4>2. Échangez</h4>
+                        <p class="text-muted">Discutez avec les personnes intéressées via notre messagerie interne.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center p-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="bi bi-hand-thumbs-up fs-1"></i>
+                        </div>
+                        <h4>3. Donnez</h4>
+                        <p class="text-muted">Remettez l'objet en main propre ou envoyez-le selon vos préférences.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
 
-    <footer th:replace="~{fragments/layout :: footer}"></footer>
-    <div th:replace="~{fragments/layout :: scripts}"></div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
 </body>
 </html>

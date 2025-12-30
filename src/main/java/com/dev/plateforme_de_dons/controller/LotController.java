@@ -111,6 +111,7 @@ public class LotController {
         model.addAttribute("availableAnnonces", availableAnnonces.stream()
                 .map(annonceService::convertToDto)
                 .collect(Collectors.toList()));
+        model.addAttribute("editing", false);
 
         return "lots/form";
     }

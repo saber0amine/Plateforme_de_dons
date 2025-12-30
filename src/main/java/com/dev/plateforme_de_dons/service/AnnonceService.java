@@ -1,11 +1,12 @@
 package com.dev.plateforme_de_dons.service;
 
 import com.dev.plateforme_de_dons.dto.AnnonceDto;
+import com.dev.plateforme_de_dons.dto.ImageDto;
 import com.dev.plateforme_de_dons.dto.SearchCriteriaDto;
 import com.dev.plateforme_de_dons.model.*;
 import com.dev.plateforme_de_dons.repository.AnnonceRepository;
 import com.dev.plateforme_de_dons.repository.KeywordRepository;
-import jakarta.persistence.criteria.Join;
+ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,6 @@ public class AnnonceService {
 
     private final AnnonceRepository annonceRepository;
     private final KeywordRepository keywordRepository;
-    private final ImageService imageService;
 
     public Annonce createAnnonce(AnnonceDto dto, User owner) {
         Annonce annonce = new Annonce();
@@ -225,11 +225,30 @@ public class AnnonceService {
         }
         dto.setFavoriteCount(annonce.getFavorites().size());
 
-        // Ajouter les images
-        dto.setImages(imageService.convertToDtoList(annonce.getImages()));
-        Image primaryImage = annonce.getPrimaryImage();
-        if (primaryImage != null) {
-            dto.setPrimaryImage(imageService.convertToDto(primaryImage));
+         if (annonce.getImages() != null && !annonce.getImages().isEmpty()) {
+            List<ImageDto> imageDtos = annonce.getImages().stream()
+                    .map(image -> {
+                        ImageDto imgDto = new ImageDto();
+                        imgDto.setId(image.getId());
+                        imgDto.setUrl("/api/images/" + image.getId());
+                        imgDto.setPrimary(image.isPrimary());
+                        imgDto.setFilename(image.getFilename());
+                        return imgDto;
+                    })
+                    .collect(Collectors.toList());
+            dto.setImages(imageDtos);
+
+             Image primaryImage = annonce.getPrimaryImage();
+            if (primaryImage != null) {
+                ImageDto primaryDto = new ImageDto();
+                primaryDto.setId(primaryImage.getId());
+                primaryDto.setUrl("/api/images/" + primaryImage.getId());
+                primaryDto.setPrimary(true);
+                dto.setPrimaryImage(primaryDto);
+                dto.setImageUrl("/api/images/" + primaryImage.getId());
+            } else if (!imageDtos.isEmpty()) {
+                 dto.setImageUrl(imageDtos.get(0).getUrl());
+            }
         }
 
         return dto;

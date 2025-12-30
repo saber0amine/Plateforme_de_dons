@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Modifier le lot' : 'Nouveau lot')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="flex-grow-1 py-4">
+    <div class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi" th:classappend="${editing} ? 'bi-pencil' : 'bi-plus-circle'"></i>
+                            <span th:text="${editing} ? 'Modifier le lot' : 'Créer un nouveau lot'"></span>
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form th:action="${editing} ? @{/lots/{id}(id=${lot.id})} : @{/lots}"
+                              th:object="${lot}" method="post" enctype="multipart/form-data">
+
+                            <div class="mb-3">
+                                <label for="titre" class="form-label">Titre du lot *</label>
+                                <input type="text" class="form-control" id="titre"
+                                       th:field="*{titre}" th:classappend="${#fields.hasErrors('titre')} ? 'is-invalid'"
+                                       placeholder="Ex: Lot de meubles de salon" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('titre')}" th:errors="*{titre}"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" rows="3"
+                                          th:field="*{description}"
+                                          placeholder="Décrivez le lot (optionnel)..."></textarea>
+                            </div>
+
+                            <div class="mb-4" th:unless="${editing}">
+                                <label class="form-label">Sélectionnez les annonces à inclure</label>
+
+                                <div th:if="${availableAnnonces.isEmpty()}" class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Vous n'avez pas d'annonces disponibles. Créez d'abord des annonces avant de les regrouper en lot.
+                                </div>
+
+                                <div class="row row-cols-1 row-cols-md-2 g-2" th:unless="${availableAnnonces.isEmpty()}">
+                                    <div class="col" th:each="annonce : ${availableAnnonces}">
+                                        <div class="form-check border rounded p-3">
+                                            <input class="form-check-input" type="checkbox"
+                                                   th:id="'annonce-' + ${annonce.id}"
+                                                   name="annonceIds"
+                                                   th:value="${annonce.id}">
+                                            <label class="form-check-label w-100" th:for="'annonce-' + ${annonce.id}">
+                                                <strong th:text="${annonce.titre}"></strong>
+                                                <br>
+                                                <small class="text-muted" th:text="${#strings.abbreviate(annonce.description, 50)}"></small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION UPLOAD D'IMAGES - DISPONIBLE EN CRÉATION ET ÉDITION -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="bi bi-images"></i> Photos du lot
+                                    <span class="text-muted">(optionnel, max 5 images)</span>
+                                </label>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <input type="file" class="form-control" id="imageFiles"
+                                                   name="imageFiles" accept="image/*" multiple
+                                                   onchange="previewImages(event)">
+                                            <small class="text-muted">Formats acceptés : JPG, PNG, GIF (max 5MB par image)</small>
+                                        </div>
+
+                                        <!-- Prévisualisation des nouvelles images sélectionnées -->
+                                        <div id="imagePreview" class="row g-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SECTION GESTION DES IMAGES EXISTANTES - VISIBLE UNIQUEMENT EN ÉDITION -->
+                            <div th:if="${editing != null && editing && lot.id != null}" class="mb-4">
+                                <label class="form-label">
+                                    <i class="bi bi-images"></i> Images actuelles
+                                </label>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div id="existingImages" class="row g-2">
+                                            <div class="col-12 text-center">
+                                                <div class="spinner-border" role="status">
+                                                    <span class="visually-hidden">Chargement...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="${editing} ? @{/lots/{id}(id=${lot.id})} : @{/lots}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Annuler
+                                </a>
+                                <button type="submit" class="btn btn-primary" th:unless="${availableAnnonces.isEmpty() && !editing}">
+                                    <i class="bi" th:classappend="${editing} ? 'bi-check-circle' : 'bi-plus-circle'"></i>
+                                    <span th:text="${editing} ? 'Enregistrer' : 'Créer le lot'"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+
+<script th:inline="javascript">
+    // Variables Thymeleaf injectées
+    const editing = /*[[${editing}]]*/ false;
+    const lotId = /*[[${lot.id}]]*/ null;
+
+    // Prévisualisation des nouvelles images sélectionnées
+    function previewImages(event) {
+        const files = event.target.files;
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
+
+        if (files.length > 5) {
+            alert('Vous pouvez sélectionner maximum 5 images');
+            event.target.value = '';
+            return;
+        }
+
+        Array.from(files).forEach((file, index) => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`L'image ${file.name} dépasse 5MB`);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-4';
+                col.innerHTML = `
+                        <div class="card">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body p-2">
+                                <small class="text-muted">${file.name}</small>
+                            </div>
+                        </div>
+                    `;
+                preview.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Charger les images existantes en mode édition
+    if (editing && lotId) {
+        loadExistingImages();
+    }
+
+    function loadExistingImages() {
+        fetch(`/api/lots/${lotId}/images`)
+            .then(response => response.json())
+            .then(images => {
+                const container = document.getElementById('existingImages');
+
+                if (images.length === 0) {
+                    container.innerHTML = '<div class="col-12 text-center text-muted">Aucune image</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                images.forEach(image => {
+                    const col = document.createElement('div');
+                    col.className = 'col-6 col-md-4';
+                    col.innerHTML = `
+                            <div class="card">
+                                <img src="${image.url}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <button type="button" class="btn btn-sm btn-danger w-100"
+                                            onclick="deleteImage(${image.id}, this)">
+                                        <i class="bi bi-trash"></i> Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    container.appendChild(col);
+                });
+            })
+            .catch(error => {
+                console.error('Erreur chargement images:', error);
+                document.getElementById('existingImages').innerHTML =
+                    '<div class="col-12 text-center text-danger">Erreur de chargement</div>';
+            });
+    }
+
+    function deleteImage(imageId, button) {
+        if (!confirm('Supprimer cette image ?')) return;
+
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        fetch(`/api/lots/${lotId}/images/${imageId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    loadExistingImages();
+                } else {
+                    throw new Error('Erreur suppression');
+                }
+            })
+            .catch(error => {
+                alert('Erreur lors de la suppression');
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-trash"></i> Supprimer';
+            });
+    }
+</script>
+</body>
+</html>

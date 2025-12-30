@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Recherches sauvegardées')}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <h1 class="mb-4"><i class="bi bi-bookmark"></i> Recherches sauvegardées</h1>
+
+            <div th:if="${savedSearches.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-bookmark display-1 text-muted"></i>
+                <h3 class="mt-3">Aucune recherche sauvegardée</h3>
+                <p class="text-muted">Sauvegardez vos recherches pour recevoir des notifications</p>
+                <a th:href="@{/search}" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Faire une recherche
+                </a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 g-4" th:unless="${savedSearches.isEmpty()}">
+                <div class="col" th:each="search : ${savedSearches.content}">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0" th:text="${search.name}"></h5>
+                            <span th:if="${search.notificationsEnabled}" class="badge bg-success">
+                                <i class="bi bi-bell-fill"></i> Notifications actives
+                            </span>
+                            <span th:unless="${search.notificationsEnabled}" class="badge bg-secondary">
+                                <i class="bi bi-bell-slash"></i> Notifications désactivées
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li th:if="${search.query}">
+                                    <small class="text-muted">Recherche :</small> <span th:text="${search.query}"></span>
+                                </li>
+                                <li th:if="${search.zoneGeographique}">
+                                    <small class="text-muted">Zone :</small> <span th:text="${search.zoneGeographique}"></span>
+                                </li>
+                                <li th:if="${search.etatObjet}">
+                                    <small class="text-muted">État :</small> <span th:text="${search.etatObjet.displayName}"></span>
+                                </li>
+                                <li th:if="${search.modeLivraison}">
+                                    <small class="text-muted">Mode :</small> <span th:text="${search.modeLivraison.displayName}"></span>
+                                </li>
+                                <li th:if="${search.keywords}">
+                                    <small class="text-muted">Mots-clés :</small> <span th:text="${search.keywords}"></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    Créée le <span th:text="${#temporals.format(search.createdAt, 'dd/MM/yyyy')}"></span>
+                                </small>
+                                <div class="btn-group">
+                                    <a th:href="@{/saved-searches/{id}/execute(id=${search.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-search"></i>
+                                    </a>
+                                    <form th:action="@{/saved-searches/{id}/toggle-notifications(id=${search.id})}" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm"
+                                                th:classappend="${search.notificationsEnabled} ? 'btn-outline-warning' : 'btn-outline-success'">
+                                            <i class="bi" th:classappend="${search.notificationsEnabled} ? 'bi-bell-slash' : 'bi-bell'"></i>
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/saved-searches/{id}/delete(id=${search.id})}" method="post" class="d-inline"
+                                          onsubmit="return confirm('Supprimer cette recherche ?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/saved-searches')}"></div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

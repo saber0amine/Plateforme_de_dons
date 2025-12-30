@@ -29,12 +29,12 @@ public class LotDto {
     private boolean active;
     private LocalDateTime createdAt;
 
-    // Gestion des images
+    private String imageUrl;
+
     private List<ImageDto> images = new ArrayList<>();
     private ImageDto primaryImage;
 
-    // Constructeurs
-    public LotDto() {
+     public LotDto() {
     }
 
     public LotDto(Long id, String titre, String description) {
@@ -43,8 +43,7 @@ public class LotDto {
         this.description = description;
     }
 
-    // Getters et Setters explicites pour les images
-    public List<ImageDto> getImages() {
+     public List<ImageDto> getImages() {
         return images;
     }
 

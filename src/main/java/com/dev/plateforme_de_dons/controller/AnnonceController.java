@@ -8,6 +8,7 @@ import com.dev.plateforme_de_dons.model.ModeLivraison;
 import com.dev.plateforme_de_dons.model.User;
 import com.dev.plateforme_de_dons.service.AnnonceService;
 import com.dev.plateforme_de_dons.service.FavoriteService;
+import com.dev.plateforme_de_dons.service.ImageService;
 import com.dev.plateforme_de_dons.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,23 +24,27 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequestMapping("/annonces")
 @RequiredArgsConstructor
+@Slf4j
 public class AnnonceController {
 
     private final AnnonceService annonceService;
     private final UserService userService;
     private final FavoriteService favoriteService;
-
+    private final ImageService imageService;
     @GetMapping
     public String listAnnonces(
             @RequestParam(defaultValue = "0") int page,
@@ -107,6 +112,7 @@ public class AnnonceController {
         model.addAttribute("annonce", new AnnonceDto());
         model.addAttribute("etats", EtatObjet.values());
         model.addAttribute("modes", ModeLivraison.values());
+        model.addAttribute("editing", false);
         return "annonces/form";
     }
 
@@ -114,6 +120,7 @@ public class AnnonceController {
     public String createAnnonce(
             @Valid @ModelAttribute("annonce") AnnonceDto annonceDto,
             BindingResult result,
+            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
             Authentication authentication,
             RedirectAttributes redirectAttributes,
             Model model) {
@@ -121,6 +128,7 @@ public class AnnonceController {
         if (result.hasErrors()) {
             model.addAttribute("etats", EtatObjet.values());
             model.addAttribute("modes", ModeLivraison.values());
+            model.addAttribute("editing", false);
             return "annonces/form";
         }
 
@@ -129,12 +137,28 @@ public class AnnonceController {
 
         try {
             Annonce annonce = annonceService.createAnnonce(annonceDto, user);
+
+            if (imageFiles != null && !imageFiles.isEmpty()) {
+                boolean isFirst = true;
+                for (MultipartFile file : imageFiles) {
+                    if (!file.isEmpty()) {
+                        try {
+                            imageService.uploadImageForAnnonce(file, annonce, isFirst);
+                            isFirst = false;
+                        } catch (IOException e) {
+                            log.error("Erreur upload image", e);
+                        }
+                    }
+                }
+            }
+
             redirectAttributes.addFlashAttribute("success", "Annonce créée avec succès !");
             return "redirect:/annonces/" + annonce.getId();
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("etats", EtatObjet.values());
             model.addAttribute("modes", ModeLivraison.values());
+            model.addAttribute("editing", false);
             return "annonces/form";
         }
     }

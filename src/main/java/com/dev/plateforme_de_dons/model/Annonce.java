@@ -95,6 +95,9 @@ public class Annonce {
     @Version
     private Long version;
 
+    @Column(length = 500)
+    private String imageUrl;
+
     public void addKeyword(Keyword keyword) {
         keywords.add(keyword);
         keyword.getAnnonces().add(this);
@@ -114,6 +117,7 @@ public class Annonce {
         images.remove(image);
         image.setAnnonce(null);
     }
+
 
     public Image getPrimaryImage() {
         return images.stream()

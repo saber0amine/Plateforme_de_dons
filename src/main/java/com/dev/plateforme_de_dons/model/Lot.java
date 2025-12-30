@@ -54,6 +54,9 @@ public class Lot {
     @Version
     private Long version;
 
+    @Column(length = 500)
+    private String imageUrl;
+
     public void addAnnonce(Annonce annonce) {
         annonces.add(annonce);
         annonce.setLot(this);

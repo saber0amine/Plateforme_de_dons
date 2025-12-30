@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mes favoris')}"></head>
+<body class="d-flex flex-column min-vh-100">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+    <main class="flex-grow-1 py-4">
+        <div class="container">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <h1 class="mb-4"><i class="bi bi-heart-fill text-danger"></i> Mes favoris</h1>
+
+            <div th:if="${favorites.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-heart display-1 text-muted"></i>
+                <h3 class="mt-3">Aucun favori</h3>
+                <p class="text-muted">Ajoutez des annonces à vos favoris pour les retrouver facilement</p>
+                <a th:href="@{/annonces}" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Parcourir les annonces
+                </a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" th:unless="${favorites.isEmpty()}">
+                <div class="col" th:each="annonce : ${favorites.content}">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">
+                                    <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                                       th:text="${annonce.titre}" class="text-decoration-none"></a>
+                                </h5>
+                                <span th:if="${annonce.reserved}" class="badge bg-warning">Réservé</span>
+                                <span th:if="${annonce.given}" class="badge bg-success">Donné</span>
+                            </div>
+                            <p class="card-text text-muted small" th:text="${#strings.abbreviate(annonce.description, 80)}"></p>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
+                            </small>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <a th:href="@{/annonces/{id}(id=${annonce.id})}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+                            <form th:action="@{/favorites/remove/{id}(id=${annonce.id})}" method="post">
+                                <input type="hidden" name="returnUrl" value="favorites">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-heart-fill"></i> Retirer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/favorites')}"></div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
