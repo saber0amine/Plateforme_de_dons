@@ -26,13 +26,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("SELECT m FROM Message m WHERE (m.sender = :user OR m.receiver = :user) ORDER BY m.sentAt DESC")
     Page<Message> findAllByUser(@Param("user") User user, Pageable pageable);
 
-    @Query("SELECT m FROM Message m WHERE m.annonce = :annonce AND " +
-           "((m.sender = :user1 AND m.receiver = :user2) OR (m.sender = :user2 AND m.receiver = :user1)) " +
-           "ORDER BY m.sentAt ASC")
+    @Query("SELECT m FROM Message m WHERE " +
+            "((m.sender = :user1 AND m.receiver = :user2) OR (m.sender = :user2 AND m.receiver = :user1)) " +
+            "AND (:annonce IS NULL OR m.annonce = :annonce) " +
+            "ORDER BY m.sentAt ASC")
     List<Message> findConversation(@Param("user1") User user1, @Param("user2") User user2, @Param("annonce") Annonce annonce);
 
     @Query("SELECT DISTINCT CASE WHEN m.sender = :user THEN m.receiver ELSE m.sender END FROM Message m " +
-           "WHERE m.sender = :user OR m.receiver = :user")
+            "WHERE m.sender = :user OR m.receiver = :user")
     List<User> findConversationPartners(@Param("user") User user);
 
     @Query("SELECT DISTINCT m.receiver FROM Message m WHERE m.sender = :user")
@@ -40,6 +41,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT DISTINCT m.sender FROM Message m WHERE m.receiver = :user")
     List<User> findSendersForReceiver(@Param("user") User user);
+
     long countByReceiverAndReadFalse(User receiver);
 
     Page<Message> findByAnnonce(Annonce annonce, Pageable pageable);

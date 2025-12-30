@@ -1,5 +1,6 @@
 package com.dev.plateforme_de_dons.controller;
 
+import com.dev.plateforme_de_dons.dto.ConversationDto;
 import com.dev.plateforme_de_dons.dto.MessageDto;
 import com.dev.plateforme_de_dons.model.Annonce;
 import com.dev.plateforme_de_dons.model.Message;
@@ -9,10 +10,6 @@ import com.dev.plateforme_de_dons.service.MessageService;
 import com.dev.plateforme_de_dons.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,47 +35,31 @@ public class MessageController {
     private final AnnonceService annonceService;
 
     @GetMapping
-    public String listMessages(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            Model model,
-            Authentication authentication) {
-
+    public String listConversations(Model model, Authentication authentication) {
         User user = userService.findByUsername(authentication.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "sentAt"));
-        Page<Message> messagesPage = messageService.getAllMessages(user, pageable);
+        List<ConversationDto> conversations = messageService.getConversationsWithLastMessage(user);
+        long unreadCount = messageService.getUnreadCount(user);
 
-        List<User> conversationPartners = messageService.getConversationPartners(user);
-
-        model.addAttribute("messages", messagesPage.map(messageService::convertToDto));
-        model.addAttribute("conversations", conversationPartners);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", messagesPage.getTotalPages());
-        model.addAttribute("unreadCount", messageService.getUnreadCount(user));
+        model.addAttribute("conversations", conversations);
+        model.addAttribute("unreadCount", unreadCount);
 
         return "messages/list";
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> listMessagesJson(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            Authentication authentication) {
-
+    public ResponseEntity<Map<String, Object>> listConversationsJson(Authentication authentication) {
         User user = userService.findByUsername(authentication.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "sentAt"));
-        Page<Message> messagesPage = messageService.getAllMessages(user, pageable);
+        List<ConversationDto> conversations = messageService.getConversationsWithLastMessage(user);
+        long unreadCount = messageService.getUnreadCount(user);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("messages", messagesPage.map(messageService::convertToDto).getContent());
-        response.put("currentPage", page);
-        response.put("totalPages", messagesPage.getTotalPages());
-        response.put("unreadCount", messageService.getUnreadCount(user));
+        response.put("conversations", conversations);
+        response.put("unreadCount", unreadCount);
 
         return ResponseEntity.ok(response);
     }
