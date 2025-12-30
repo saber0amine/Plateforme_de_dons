@@ -28,6 +28,7 @@ public class AnnonceService {
     private final AnnonceRepository annonceRepository;
     private final KeywordRepository keywordRepository;
     private final FavoriteRepository favoriteRepository;
+    private final ImageService imageService;
 
     public Annonce createAnnonce(AnnonceDto dto, User owner) {
         Annonce annonce = new Annonce();
@@ -224,8 +225,18 @@ public class AnnonceService {
         if (annonce.getLot() != null) {
             dto.setLotId(annonce.getLot().getId());
         }
-         dto.setFavoriteCount((int) favoriteRepository.countByAnnonce(annonce));
-        dto.setImageUrl(annonce.getImageUrl());
+        dto.setFavoriteCount((int) favoriteRepository.countByAnnonce(annonce));
+
+         dto.setImages(imageService.convertToDtoList(annonce.getImages()));
+
+         Image primaryImage = annonce.getPrimaryImage();
+        if (primaryImage != null) {
+            dto.setPrimaryImage(imageService.convertToDto(primaryImage));
+            dto.setImageUrl("/api/images/" + primaryImage.getId());
+        } else {
+            dto.setImageUrl(null);
+        }
+
         return dto;
     }
 }

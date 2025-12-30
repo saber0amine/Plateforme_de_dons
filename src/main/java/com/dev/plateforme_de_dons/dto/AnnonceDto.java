@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,6 +43,7 @@ public class AnnonceDto {
     private ModeLivraison modeLivraison;
 
     private Set<String> keywords = new HashSet<>();
+
     private String keywordsInput;
 
     private LocalDateTime datePublication;
@@ -58,6 +58,4 @@ public class AnnonceDto {
 
      private List<ImageDto> images = new ArrayList<>();
     private ImageDto primaryImage;
-
-     private transient List<MultipartFile> imageFiles = new ArrayList<>();
 }
