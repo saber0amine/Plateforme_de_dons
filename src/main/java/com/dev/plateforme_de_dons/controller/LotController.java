@@ -3,9 +3,11 @@ package com.dev.plateforme_de_dons.controller;
 import com.dev.plateforme_de_dons.dto.AnnonceDto;
 import com.dev.plateforme_de_dons.dto.LotDto;
 import com.dev.plateforme_de_dons.model.Annonce;
+import com.dev.plateforme_de_dons.model.Image;
 import com.dev.plateforme_de_dons.model.Lot;
 import com.dev.plateforme_de_dons.model.User;
 import com.dev.plateforme_de_dons.service.AnnonceService;
+import com.dev.plateforme_de_dons.service.ImageService;
 import com.dev.plateforme_de_dons.service.LotService;
 import com.dev.plateforme_de_dons.service.UserService;
 import jakarta.validation.Valid;
@@ -38,6 +40,7 @@ public class LotController {
     private final LotService lotService;
     private final UserService userService;
     private final AnnonceService annonceService;
+    private final ImageService imageService;
 
     @GetMapping
     public String listLots(
@@ -306,6 +309,14 @@ public class LotController {
         dto.setAnnonces(lot.getAnnonces().stream()
                 .map(annonceService::convertToDto)
                 .collect(Collectors.toList()));
+
+        // Ajouter les images
+        dto.setImages(imageService.convertToDtoList(lot.getImages()));
+        Image primaryImage = lot.getPrimaryImage();
+        if (primaryImage != null) {
+            dto.setPrimaryImage(imageService.convertToDto(primaryImage));
+        }
+
         return dto;
     }
 }

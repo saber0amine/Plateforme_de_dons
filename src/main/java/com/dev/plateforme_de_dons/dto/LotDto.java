@@ -2,19 +2,13 @@ package com.dev.plateforme_de_dons.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class LotDto {
 
     private Long id;
@@ -34,4 +28,35 @@ public class LotDto {
 
     private boolean active;
     private LocalDateTime createdAt;
+
+    // Gestion des images
+    private List<ImageDto> images = new ArrayList<>();
+    private ImageDto primaryImage;
+
+    // Constructeurs
+    public LotDto() {
+    }
+
+    public LotDto(Long id, String titre, String description) {
+        this.id = id;
+        this.titre = titre;
+        this.description = description;
+    }
+
+    // Getters et Setters explicites pour les images
+    public List<ImageDto> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImageDto> images) {
+        this.images = images;
+    }
+
+    public ImageDto getPrimaryImage() {
+        return primaryImage;
+    }
+
+    public void setPrimaryImage(ImageDto primaryImage) {
+        this.primaryImage = primaryImage;
+    }
 }

@@ -13,13 +13,15 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "annonces", indexes = {
-    @Index(name = "idx_annonce_zone", columnList = "zoneGeographique"),
-    @Index(name = "idx_annonce_etat", columnList = "etatObjet"),
-    @Index(name = "idx_annonce_date", columnList = "datePublication"),
-    @Index(name = "idx_annonce_active", columnList = "active")
+        @Index(name = "idx_annonce_zone", columnList = "zoneGeographique"),
+        @Index(name = "idx_annonce_etat", columnList = "etatObjet"),
+        @Index(name = "idx_annonce_date", columnList = "datePublication"),
+        @Index(name = "idx_annonce_active", columnList = "active")
 })
 @Data
 @NoArgsConstructor
@@ -64,9 +66,9 @@ public class Annonce {
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "annonce_keywords",
-        joinColumns = @JoinColumn(name = "annonce_id"),
-        inverseJoinColumns = @JoinColumn(name = "keyword_id")
+            name = "annonce_keywords",
+            joinColumns = @JoinColumn(name = "annonce_id"),
+            inverseJoinColumns = @JoinColumn(name = "keyword_id")
     )
     private Set<Keyword> keywords = new HashSet<>();
 
@@ -80,6 +82,9 @@ public class Annonce {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lot_id")
     private Lot lot;
+
+    @OneToMany(mappedBy = "annonce", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
 
     private boolean active = true;
 
@@ -98,5 +103,22 @@ public class Annonce {
     public void removeKeyword(Keyword keyword) {
         keywords.remove(keyword);
         keyword.getAnnonces().remove(this);
+    }
+
+    public void addImage(Image image) {
+        images.add(image);
+        image.setAnnonce(this);
+    }
+
+    public void removeImage(Image image) {
+        images.remove(image);
+        image.setAnnonce(null);
+    }
+
+    public Image getPrimaryImage() {
+        return images.stream()
+                .filter(Image::isPrimary)
+                .findFirst()
+                .orElse(images.isEmpty() ? null : images.get(0));
     }
 }

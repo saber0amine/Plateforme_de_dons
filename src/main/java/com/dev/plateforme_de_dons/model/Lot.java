@@ -39,6 +39,9 @@ public class Lot {
     @OneToMany(mappedBy = "lot", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Annonce> annonces = new ArrayList<>();
 
+    @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
+
     private boolean active = true;
 
     @CreationTimestamp
@@ -59,5 +62,22 @@ public class Lot {
     public void removeAnnonce(Annonce annonce) {
         annonces.remove(annonce);
         annonce.setLot(null);
+    }
+
+    public void addImage(Image image) {
+        images.add(image);
+        image.setLot(this);
+    }
+
+    public void removeImage(Image image) {
+        images.remove(image);
+        image.setLot(null);
+    }
+
+    public Image getPrimaryImage() {
+        return images.stream()
+                .filter(Image::isPrimary)
+                .findFirst()
+                .orElse(images.isEmpty() ? null : images.get(0));
     }
 }

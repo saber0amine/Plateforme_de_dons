@@ -13,8 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,7 +74,10 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public List<User> getConversationPartners(User user) {
-        return messageRepository.findConversationPartners(user);
+        Set<User> partners = new HashSet<>();
+        partners.addAll(messageRepository.findReceiversForSender(user));
+        partners.addAll(messageRepository.findSendersForReceiver(user));
+        return new ArrayList<>(partners);
     }
 
     @Transactional(readOnly = true)

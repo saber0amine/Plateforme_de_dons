@@ -1,0 +1,5 @@
+probleme au niveau de message .
+ajouter les image pour les annonces .
+j ai tester la session ==> OUI .
+prob ajout favoris ==>  APP CRASH !
+recherche doit inclure les lots .

@@ -35,6 +35,11 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "WHERE m.sender = :user OR m.receiver = :user")
     List<User> findConversationPartners(@Param("user") User user);
 
+    @Query("SELECT DISTINCT m.receiver FROM Message m WHERE m.sender = :user")
+    List<User> findReceiversForSender(@Param("user") User user);
+
+    @Query("SELECT DISTINCT m.sender FROM Message m WHERE m.receiver = :user")
+    List<User> findSendersForReceiver(@Param("user") User user);
     long countByReceiverAndReadFalse(User receiver);
 
     Page<Message> findByAnnonce(Annonce annonce, Pageable pageable);

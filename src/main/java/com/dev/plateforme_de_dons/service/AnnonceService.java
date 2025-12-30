@@ -26,6 +26,7 @@ public class AnnonceService {
 
     private final AnnonceRepository annonceRepository;
     private final KeywordRepository keywordRepository;
+    private final ImageService imageService;
 
     public Annonce createAnnonce(AnnonceDto dto, User owner) {
         Annonce annonce = new Annonce();
@@ -223,6 +224,14 @@ public class AnnonceService {
             dto.setLotId(annonce.getLot().getId());
         }
         dto.setFavoriteCount(annonce.getFavorites().size());
+
+        // Ajouter les images
+        dto.setImages(imageService.convertToDtoList(annonce.getImages()));
+        Image primaryImage = annonce.getPrimaryImage();
+        if (primaryImage != null) {
+            dto.setPrimaryImage(imageService.convertToDto(primaryImage));
+        }
+
         return dto;
     }
 }

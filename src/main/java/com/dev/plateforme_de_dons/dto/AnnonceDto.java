@@ -5,19 +5,15 @@ import com.dev.plateforme_de_dons.model.ModeLivraison;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class AnnonceDto {
 
     private Long id;
@@ -52,4 +48,35 @@ public class AnnonceDto {
     private boolean given;
     private Long lotId;
     private int favoriteCount;
+
+    // Gestion des images
+    private List<ImageDto> images = new ArrayList<>();
+    private ImageDto primaryImage;
+
+    // Constructeurs
+    public AnnonceDto() {
+    }
+
+    public AnnonceDto(Long id, String titre, String description) {
+        this.id = id;
+        this.titre = titre;
+        this.description = description;
+    }
+
+    // Getters et Setters explicites pour les images
+    public List<ImageDto> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImageDto> images) {
+        this.images = images;
+    }
+
+    public ImageDto getPrimaryImage() {
+        return primaryImage;
+    }
+
+    public void setPrimaryImage(ImageDto primaryImage) {
+        this.primaryImage = primaryImage;
+    }
 }
