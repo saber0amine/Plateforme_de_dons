@@ -10,128 +10,224 @@
 
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card shadow">
+                <div class="card shadow slide-up">
                     <div class="card-header bg-primary text-white">
                         <h4 class="mb-0">
                             <i class="bi" th:classappend="${editing} ? 'bi-pencil' : 'bi-plus-circle'"></i>
                             <span th:text="${editing} ? 'Modifier l\'annonce' : 'Créer une nouvelle annonce'"></span>
                         </h4>
+                        <small class="text-white-50">Les champs marqués d'un * sont obligatoires</small>
                     </div>
                     <div class="card-body p-4">
                         <form th:action="${editing} ? @{/annonces/{id}(id=${annonce.id})} : @{/annonces}"
-                              th:object="${annonce}" method="post" enctype="multipart/form-data">
+                              th:object="${annonce}"
+                              method="post"
+                              enctype="multipart/form-data"
+                              data-validate="true"
+                              id="annonceForm">
 
-                            <div class="mb-3">
-                                <label for="titre" class="form-label">Titre *</label>
-                                <input type="text" class="form-control" id="titre"
-                                       th:field="*{titre}" th:classappend="${#fields.hasErrors('titre')} ? 'is-invalid'"
-                                       placeholder="Ex: Canapé 3 places en bon état" required>
+                            <div class="mb-4">
+                                <label for="titre" class="form-label fw-bold">
+                                    Titre *
+                                    <i class="bi bi-info-circle tooltip-icon"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="Un titre court et descriptif pour votre annonce"></i>
+                                </label>
+                                <input type="text"
+                                       class="form-control form-control-lg"
+                                       id="titre"
+                                       th:field="*{titre}"
+                                       th:classappend="${#fields.hasErrors('titre')} ? 'is-invalid'"
+                                       placeholder="Ex: Canapé 3 places en bon état"
+                                       required
+                                       minlength="5"
+                                       maxlength="100"
+                                       aria-describedby="titreHelp">
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('titre')}" th:errors="*{titre}"></div>
-                                <small class="text-muted">Entre 5 et 100 caractères</small>
+                                <small id="titreHelp" class="form-text text-muted">Entre 5 et 100 caractères</small>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description *</label>
-                                <textarea class="form-control" id="description" rows="5"
-                                          th:field="*{description}" th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
-                                          placeholder="Décrivez votre objet en détail : dimensions, couleur, marque, raison du don..." required></textarea>
+                            <div class="mb-4">
+                                <label for="description" class="form-label fw-bold">
+                                    Description *
+                                    <i class="bi bi-info-circle tooltip-icon"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="Décrivez votre objet en détail : état, dimensions, couleur, etc."></i>
+                                </label>
+                                <textarea class="form-control"
+                                          id="description"
+                                          rows="5"
+                                          th:field="*{description}"
+                                          th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"
+                                          placeholder="Décrivez votre objet en détail : dimensions, couleur, marque, raison du don..."
+                                          required
+                                          minlength="10"
+                                          maxlength="2000"
+                                          data-autoresize="true"
+                                          aria-describedby="descriptionHelp"></textarea>
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
-                                <small class="text-muted">Entre 10 et 2000 caractères</small>
+                                <small id="descriptionHelp" class="form-text text-muted">Entre 10 et 2000 caractères</small>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="etatObjet" class="form-label">État de l'objet *</label>
-                                    <select class="form-select" id="etatObjet"
-                                            th:field="*{etatObjet}" th:classappend="${#fields.hasErrors('etatObjet')} ? 'is-invalid'" required>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="etatObjet" class="form-label fw-bold">
+                                        État de l'objet *
+                                    </label>
+                                    <select class="form-select"
+                                            id="etatObjet"
+                                            th:field="*{etatObjet}"
+                                            th:classappend="${#fields.hasErrors('etatObjet')} ? 'is-invalid'"
+                                            required
+                                            aria-describedby="etatHelp">
                                         <option value="">Sélectionnez l'état</option>
-                                        <option th:each="etat : ${etats}" th:value="${etat}" th:text="${etat.displayName}"></option>
+                                        <option th:each="etat : ${etats}"
+                                                th:value="${etat}"
+                                                th:text="${etat.displayName}"></option>
                                     </select>
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('etatObjet')}" th:errors="*{etatObjet}"></div>
+                                    <small id="etatHelp" class="form-text text-muted">Décrivez honnêtement l'état</small>
                                 </div>
 
-                                <div class="col-md-6 mb-3">
-                                    <label for="modeLivraison" class="form-label">Mode de remise *</label>
-                                    <select class="form-select" id="modeLivraison"
-                                            th:field="*{modeLivraison}" th:classappend="${#fields.hasErrors('modeLivraison')} ? 'is-invalid'" required>
+                                <div class="col-md-6">
+                                    <label for="modeLivraison" class="form-label fw-bold">
+                                        Mode de remise *
+                                    </label>
+                                    <select class="form-select"
+                                            id="modeLivraison"
+                                            th:field="*{modeLivraison}"
+                                            th:classappend="${#fields.hasErrors('modeLivraison')} ? 'is-invalid'"
+                                            required
+                                            aria-describedby="modeHelp">
                                         <option value="">Sélectionnez le mode</option>
-                                        <option th:each="mode : ${modes}" th:value="${mode}" th:text="${mode.displayName}"></option>
+                                        <option th:each="mode : ${modes}"
+                                                th:value="${mode}"
+                                                th:text="${mode.displayName}"></option>
                                     </select>
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('modeLivraison')}" th:errors="*{modeLivraison}"></div>
+                                    <small id="modeHelp" class="form-text text-muted">Comment remettre l'objet</small>
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="zoneGeographique" class="form-label">Zone géographique *</label>
+                            <div class="mb-4">
+                                <label for="zoneGeographique" class="form-label fw-bold">
+                                    Zone géographique *
+                                </label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                                    <input type="text" class="form-control" id="zoneGeographique"
-                                           th:field="*{zoneGeographique}" th:classappend="${#fields.hasErrors('zoneGeographique')} ? 'is-invalid'"
-                                           placeholder="Ex: Paris 15e, Lyon, Bordeaux..." required>
+                                    <span class="input-group-text">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </span>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="zoneGeographique"
+                                           th:field="*{zoneGeographique}"
+                                           th:classappend="${#fields.hasErrors('zoneGeographique')} ? 'is-invalid'"
+                                           placeholder="Ex: Paris 15e, Lyon, Bordeaux..."
+                                           required
+                                           aria-describedby="zoneHelp">
                                 </div>
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('zoneGeographique')}" th:errors="*{zoneGeographique}"></div>
+                                <small id="zoneHelp" class="form-text text-muted">Ville ou région pour la remise</small>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="keywordsInput" class="form-label">Mots-clés</label>
-                                <input type="text" class="form-control" id="keywordsInput"
-                                       th:field="*{keywordsInput}"
-                                       placeholder="Ex: meubles, décoration, vintage (séparés par des virgules)">
-                                <small class="text-muted">Ajoutez des mots-clés pour faciliter la recherche (séparés par des virgules)</small>
-                            </div>
-
-                            <!-- SECTION UPLOAD D'IMAGES - DISPONIBLE EN CRÉATION ET ÉDITION -->
                             <div class="mb-4">
-                                <label class="form-label">
+                                <label for="keywordsInput" class="form-label fw-bold">
+                                    Mots-clés
+                                    <i class="bi bi-info-circle tooltip-icon"
+                                       data-bs-toggle="tooltip"
+                                       data-bs-placement="right"
+                                       title="Ajoutez des mots-clés pour faciliter la recherche de votre annonce"></i>
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="keywordsInput"
+                                       th:field="*{keywordsInput}"
+                                       placeholder="Ex: meubles, décoration, vintage (séparés par des virgules)"
+                                       aria-describedby="keywordsHelp">
+                                <small id="keywordsHelp" class="form-text text-muted">Ajoutez des mots-clés séparés par des virgules</small>
+                                <div id="keywordChips" class="mt-2"></div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
                                     <i class="bi bi-images"></i> Photos de l'objet
-                                    <span class="text-muted">(optionnel, max 5 images)</span>
+                                    <span class="text-muted">(optionnel, max 5 images de 5MB chacune)</span>
                                 </label>
 
-                                <div class="card">
-                                    <div class="card-body">
+                                <div class="card border-2 border-dashed">
+                                    <div class="card-body text-center p-4">
                                         <div class="mb-3">
-                                            <input type="file" class="form-control" id="imageFiles"
-                                                   name="imageFiles" accept="image/*" multiple
-                                                   onchange="previewImages(event)">
-                                            <small class="text-muted">Formats acceptés : JPG, PNG, GIF (max 5MB par image)</small>
+                                            <i class="bi bi-cloud-upload display-1 text-primary mb-3"></i>
+                                            <h5>Glissez-déposez vos images ici</h5>
+                                            <p class="text-muted mb-3">ou cliquez pour sélectionner</p>
+                                            <input type="file"
+                                                   class="form-control d-none"
+                                                   id="imageFiles"
+                                                   name="imageFiles"
+                                                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                                   multiple
+                                                   onchange="handleImageSelection(event)"
+                                                   aria-describedby="imageHelp">
+                                            <label for="imageFiles" class="btn btn-primary">
+                                                <i class="bi bi-folder2-open"></i> Choisir des fichiers
+                                            </label>
                                         </div>
+                                        <small id="imageHelp" class="text-muted d-block">
+                                            Formats acceptés : JPG, PNG, GIF, WebP (max 5MB par image)
+                                        </small>
 
-                                        <!-- Prévisualisation des nouvelles images sélectionnées -->
-                                        <div id="imagePreview" class="row g-2"></div>
+                                        <div id="imagePreview" class="row g-3 mt-3"></div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- SECTION GESTION DES IMAGES EXISTANTES - VISIBLE UNIQUEMENT EN ÉDITION -->
                             <div th:if="${editing != null && editing && annonce.id != null}" class="mb-4">
-                                <label class="form-label">
+                                <label class="form-label fw-bold">
                                     <i class="bi bi-images"></i> Images actuelles
                                 </label>
 
                                 <div class="card">
                                     <div class="card-body">
-                                        <div id="existingImages" class="row g-2">
+                                        <div id="existingImages" class="row g-3">
                                             <div class="col-12 text-center">
-                                                <div class="spinner-border" role="status">
+                                                <div class="spinner-border text-primary" role="status">
                                                     <span class="visually-hidden">Chargement...</span>
                                                 </div>
+                                                <p class="text-muted mt-2">Chargement des images...</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 pt-3 border-top">
                                 <a th:href="${editing} ? @{/annonces/{id}(id=${annonce.id})} : @{/annonces}"
-                                   class="btn btn-outline-secondary">
+                                   class="btn btn-outline-secondary btn-lg">
                                     <i class="bi bi-x-circle"></i> Annuler
                                 </a>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
                                     <i class="bi" th:classappend="${editing} ? 'bi-check-circle' : 'bi-plus-circle'"></i>
                                     <span th:text="${editing} ? 'Enregistrer les modifications' : 'Publier l\'annonce'"></span>
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <div class="card shadow mt-4">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-lightbulb text-warning"></i> Conseils pour une bonne annonce
+                        </h6>
+                        <ul class="mb-0">
+                            <li>Soyez précis et honnête dans votre description</li>
+                            <li>Ajoutez plusieurs photos sous différents angles</li>
+                            <li>Indiquez les dimensions si pertinent</li>
+                            <li>Mentionnez tout défaut visible</li>
+                            <li>Précisez les modalités de récupération</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -143,109 +239,217 @@
 <div th:replace="~{fragments/layout :: scripts}"></div>
 
 <script th:inline="javascript">
-    // Variables Thymeleaf injectées
     const editing = /*[[${editing}]]*/ false;
     const annonceId = /*[[${annonce.id}]]*/ null;
 
-    // Prévisualisation des nouvelles images sélectionnées
-    function previewImages(event) {
-        const files = event.target.files;
-        const preview = document.getElementById('imagePreview');
-        preview.innerHTML = '';
+    let selectedFiles = [];
+    const MAX_FILES = 5;
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-        if (files.length > 5) {
-            alert('Vous pouvez sélectionner maximum 5 images');
-            event.target.value = '';
+    function handleImageSelection(event) {
+        const files = Array.from(event.target.files);
+
+        if (selectedFiles.length + files.length > MAX_FILES) {
+            showNotification(`Vous pouvez sélectionner maximum ${MAX_FILES} images`, 'error');
             return;
         }
 
-        Array.from(files).forEach((file, index) => {
-            if (file.size > 5 * 1024 * 1024) {
-                alert(`L'image ${file.name} dépasse 5MB`);
+        files.forEach(file => {
+            if (file.size > MAX_FILE_SIZE) {
+                showNotification(`L'image ${file.name} dépasse 5MB`, 'error');
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const col = document.createElement('div');
-                col.className = 'col-6 col-md-4';
-                col.innerHTML = `
-                        <div class="card">
-                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                            <div class="card-body p-2">
-                                <small class="text-muted">${file.name}</small>
-                            </div>
-                        </div>
-                    `;
-                preview.appendChild(col);
-            };
-            reader.readAsDataURL(file);
+            if (!file.type.match('image.*')) {
+                showNotification(`Le fichier ${file.name} n'est pas une image`, 'error');
+                return;
+            }
+
+            selectedFiles.push(file);
+            createImagePreview(file, selectedFiles.length - 1);
+        });
+
+        updateFileInput();
+    }
+
+    function createImagePreview(file, index) {
+        const preview = document.getElementById('imagePreview');
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const col = document.createElement('div');
+            col.className = 'col-6 col-md-4';
+            col.setAttribute('data-index', index);
+            col.innerHTML = `
+                <div class="card image-preview-item shadow-sm">
+                    <img src="${e.target.result}"
+                         class="card-img-top"
+                         style="height: 150px; object-fit: cover;"
+                         alt="${file.name}">
+                    <div class="card-body p-2">
+                        <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
+                        <small class="text-muted">${formatFileSize(file.size)}</small>
+                    </div>
+                    <button type="button"
+                            class="remove-image"
+                            onclick="removeImage(${index})"
+                            aria-label="Supprimer cette image">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            `;
+            preview.appendChild(col);
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage(index) {
+        selectedFiles.splice(index, 1);
+        updateFileInput();
+        refreshImagePreview();
+    }
+
+    function refreshImagePreview() {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            createImagePreview(file, index);
         });
     }
 
-    // Charger les images existantes en mode édition
+    function updateFileInput() {
+        const input = document.getElementById('imageFiles');
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach(file => dataTransfer.items.add(file));
+        input.files = dataTransfer.files;
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
     if (editing && annonceId) {
         loadExistingImages();
     }
 
     function loadExistingImages() {
         fetch(`/api/annonces/${annonceId}/images`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Erreur de chargement');
+                return response.json();
+            })
             .then(images => {
                 const container = document.getElementById('existingImages');
 
                 if (images.length === 0) {
-                    container.innerHTML = '<div class="col-12 text-center text-muted">Aucune image</div>';
+                    container.innerHTML = `
+                        <div class="col-12 text-center text-muted">
+                            <i class="bi bi-images display-4 opacity-25"></i>
+                            <p class="mt-2">Aucune image</p>
+                        </div>
+                    `;
                     return;
                 }
 
                 container.innerHTML = '';
                 images.forEach(image => {
                     const col = document.createElement('div');
-                    col.className = 'col-6 col-md-4';
+                    col.className = 'col-6 col-md-4 col-lg-3';
                     col.innerHTML = `
-                            <div class="card">
-                                <img src="${image.url}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                                <div class="card-body p-2">
-                                    <button type="button" class="btn btn-sm btn-danger w-100"
-                                            onclick="deleteImage(${image.id}, this)">
-                                        <i class="bi bi-trash"></i> Supprimer
-                                    </button>
-                                </div>
+                        <div class="card image-preview-item shadow-sm">
+                            <img src="${image.url}"
+                                 class="card-img-top"
+                                 style="height: 150px; object-fit: cover;"
+                                 alt="Image">
+                            ${image.isPrimary ? '<div class="badge bg-primary position-absolute top-0 start-0 m-2">Principale</div>' : ''}
+                            <div class="card-body p-2 text-center">
+                                <button type="button"
+                                        class="btn btn-sm btn-danger w-100"
+                                        onclick="deleteExistingImage(${image.id}, this)"
+                                        aria-label="Supprimer cette image">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </button>
                             </div>
-                        `;
+                        </div>
+                    `;
                     container.appendChild(col);
                 });
             })
             .catch(error => {
                 console.error('Erreur chargement images:', error);
-                document.getElementById('existingImages').innerHTML =
-                    '<div class="col-12 text-center text-danger">Erreur de chargement</div>';
+                document.getElementById('existingImages').innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Erreur lors du chargement des images
+                        </div>
+                    </div>
+                `;
             });
     }
 
-    function deleteImage(imageId, button) {
+    function deleteExistingImage(imageId, button) {
         if (!confirm('Supprimer cette image ?')) return;
 
         button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Suppression...';
 
-        fetch(`/api/annonces/${annonceId}/images/${imageId}`, {
+        fetch(`/api/images/${imageId}`, {
             method: 'DELETE'
         })
             .then(response => {
                 if (response.ok) {
+                    showNotification('Image supprimée avec succès', 'success');
                     loadExistingImages();
                 } else {
                     throw new Error('Erreur suppression');
                 }
             })
             .catch(error => {
-                alert('Erreur lors de la suppression');
+                showNotification('Erreur lors de la suppression', 'error');
                 button.disabled = false;
                 button.innerHTML = '<i class="bi bi-trash"></i> Supprimer';
             });
     }
+
+    document.getElementById('keywordsInput').addEventListener('input', function(e) {
+        const keywords = e.target.value.split(',').map(k => k.trim()).filter(k => k);
+        updateKeywordChips(keywords);
+    });
+
+    function updateKeywordChips(keywords) {
+        const container = document.getElementById('keywordChips');
+        container.innerHTML = '';
+
+        keywords.forEach((keyword, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'filter-chip active me-2 mb-2';
+            chip.innerHTML = `
+                ${keyword}
+                <i class="bi bi-x remove" onclick="removeKeyword(${index})"></i>
+            `;
+            container.appendChild(chip);
+        });
+    }
+
+    function removeKeyword(index) {
+        const input = document.getElementById('keywordsInput');
+        const keywords = input.value.split(',').map(k => k.trim()).filter(k => k);
+        keywords.splice(index, 1);
+        input.value = keywords.join(', ');
+        updateKeywordChips(keywords);
+    }
+
+    document.getElementById('annonceForm').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Envoi en cours...';
+    });
 </script>
 </body>
 </html>

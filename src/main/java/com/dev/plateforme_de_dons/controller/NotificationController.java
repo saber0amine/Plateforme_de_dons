@@ -71,6 +71,52 @@ public class NotificationController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}/click")
+    public String handleNotificationClick(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        User user = userService.findByUsername(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+        Notification notification = notificationService.getNotifications(user, Pageable.unpaged())
+                .stream()
+                .filter(n -> n.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification non trouvée"));
+
+        notificationService.markAsRead(id, user);
+
+        switch (notification.getType()) {
+            case NEW_MESSAGE:
+                if (notification.getSender() != null) {
+                    if (notification.getAnnonce() != null) {
+                        return "redirect:/messages/conversation/" + notification.getSender().getId() +
+                                "?annonceId=" + notification.getAnnonce().getId();
+                    } else {
+                        return "redirect:/messages/conversation/" + notification.getSender().getId();
+                    }
+                }
+                return "redirect:/messages";
+
+            case NEW_ANNONCE_MATCH:
+                if (notification.getAnnonce() != null) {
+                    return "redirect:/annonces/" + notification.getAnnonce().getId();
+                }
+                return "redirect:/annonces";
+
+            case ANNONCE_RESERVED:
+            case ANNONCE_GIVEN:
+                if (notification.getAnnonce() != null) {
+                    return "redirect:/annonces/" + notification.getAnnonce().getId();
+                }
+                return "redirect:/mes-annonces";
+
+            default:
+                return "redirect:/notifications";
+        }
+    }
+
     @PostMapping("/{id}/read")
     @ResponseBody
     public ResponseEntity<Void> markAsRead(

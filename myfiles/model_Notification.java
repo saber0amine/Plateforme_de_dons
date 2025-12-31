@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications", indexes = {
-    @Index(name = "idx_notification_user", columnList = "user_id"),
-    @Index(name = "idx_notification_read", columnList = "read"),
-    @Index(name = "idx_notification_date", columnList = "createdAt")
+        @Index(name = "idx_notification_user", columnList = "user_id"),
+        @Index(name = "idx_notification_read", columnList = "read"),
+        @Index(name = "idx_notification_date", columnList = "createdAt")
 })
 @Data
 @NoArgsConstructor
@@ -28,6 +28,10 @@ public class Notification {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id")
+    private User sender;
 
     @NotBlank
     @Size(max = 200)

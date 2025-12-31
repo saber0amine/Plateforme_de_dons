@@ -55,28 +55,48 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public List<ConversationDto> getConversationsWithLastMessage(User user) {
-        List<User> partners = getConversationPartners(user);
+        List<Message> allMessages = messageRepository.findAllByUser(user, Pageable.unpaged()).getContent();
+
+        Map<ConversationKey, List<Message>> groupedConversations = new HashMap<>();
+
+        for (Message message : allMessages) {
+            User partner = message.getSender().getId().equals(user.getId())
+                    ? message.getReceiver()
+                    : message.getSender();
+
+            Long annonceId = message.getAnnonce() != null ? message.getAnnonce().getId() : null;
+            ConversationKey key = new ConversationKey(partner.getId(), annonceId);
+
+            groupedConversations.computeIfAbsent(key, k -> new ArrayList<>()).add(message);
+        }
 
         List<ConversationDto> conversations = new ArrayList<>();
 
-        for (User partner : partners) {
-            List<Message> messages = messageRepository.findConversation(user, partner, null);
+        for (Map.Entry<ConversationKey, List<Message>> entry : groupedConversations.entrySet()) {
+            ConversationKey key = entry.getKey();
+            List<Message> messages = entry.getValue();
+            messages.sort(Comparator.comparing(Message::getSentAt));
 
-            if (!messages.isEmpty()) {
-                Message lastMessage = messages.get(messages.size() - 1);
+            Message lastMessage = messages.get(messages.size() - 1);
+            User partner = lastMessage.getSender().getId().equals(user.getId())
+                    ? lastMessage.getReceiver()
+                    : lastMessage.getSender();
 
-                long unreadCount = messages.stream()
-                        .filter(m -> m.getReceiver().getId().equals(user.getId()))
-                        .filter(m -> !m.isRead())
-                        .count();
+            long unreadCount = messages.stream()
+                    .filter(m -> m.getReceiver().getId().equals(user.getId()))
+                    .filter(m -> !m.isRead())
+                    .count();
 
-                ConversationDto conv = new ConversationDto();
-                conv.setPartner(partner);
-                conv.setLastMessage(convertToDto(lastMessage));
-                conv.setUnreadCount(unreadCount);
-
-                conversations.add(conv);
+            ConversationDto conv = new ConversationDto();
+            conv.setPartner(partner);
+            conv.setLastMessage(convertToDto(lastMessage));
+            conv.setUnreadCount(unreadCount);
+            conv.setAnnonceId(key.annonceId);
+            if (key.annonceId != null && lastMessage.getAnnonce() != null) {
+                conv.setAnnonceTitre(lastMessage.getAnnonce().getTitre());
             }
+
+            conversations.add(conv);
         }
 
         conversations.sort((c1, c2) ->
@@ -168,5 +188,28 @@ public class MessageService {
         return messages.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+
+    private static class ConversationKey {
+        private final Long partnerId;
+        private final Long annonceId;
+
+        public ConversationKey(Long partnerId, Long annonceId) {
+            this.partnerId = partnerId;
+            this.annonceId = annonceId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ConversationKey that = (ConversationKey) o;
+            return Objects.equals(partnerId, that.partnerId) && Objects.equals(annonceId, that.annonceId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(partnerId, annonceId);
+        }
     }
 }

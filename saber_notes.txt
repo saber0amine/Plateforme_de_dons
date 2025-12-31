@@ -4,3 +4,4 @@ j ai tester la session ==> OUI .
 DONE : prob ajout favoris ==>  APP CRASH !
 recherche doit inclure les lots .
 Make notification messages consultable
+avant connexion ==> images are not displayed

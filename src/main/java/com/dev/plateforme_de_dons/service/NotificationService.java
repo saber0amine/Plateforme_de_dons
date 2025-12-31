@@ -34,17 +34,20 @@ public class NotificationService {
         notification.setType(NotificationType.NEW_ANNONCE_MATCH);
         notification.setAnnonce(annonce);
         notification.setSavedSearch(savedSearch);
+        notification.setSender(annonce.getOwner());
         return notificationRepository.save(notification);
     }
 
     public Notification createMessageNotification(User user, User sender, Message message) {
         Notification notification = new Notification();
         notification.setUser(user);
+        notification.setSender(sender);
         notification.setTitle("Nouveau message");
         notification.setMessage("Vous avez reçu un message de " + sender.getUsername());
         notification.setType(NotificationType.NEW_MESSAGE);
         if (message.getAnnonce() != null) {
             notification.setAnnonce(message.getAnnonce());
+            notification.setMessage("Vous avez reçu un message de " + sender.getUsername() + " à propos de \"" + message.getAnnonce().getTitre() + "\"");
         }
         return notificationRepository.save(notification);
     }

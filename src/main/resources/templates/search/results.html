@@ -9,125 +9,303 @@
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
-        <h1 class="mb-4"><i class="bi bi-search"></i> Rechercher des annonces</h1>
-
-        <div class="card shadow mb-4">
-            <div class="card-body">
-                <form th:action="@{/search}" method="get">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="query" class="form-label">Recherche textuelle</label>
-                            <input type="text" class="form-control" id="query" name="query"
-                                   th:value="${criteria?.query}" placeholder="Mot-clé, titre, description...">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="zone" class="form-label">Zone géographique</label>
-                            <input type="text" class="form-control" id="zone" name="zone"
-                                   th:value="${criteria?.zoneGeographique}" placeholder="Ville, région...">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="etat" class="form-label">État de l'objet</label>
-                            <select class="form-select" id="etat" name="etat">
-                                <option value="">Tous les états</option>
-                                <option th:each="e : ${etats}" th:value="${e}" th:text="${e.displayName}"
-                                        th:selected="${criteria?.etatObjet == e}"></option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="mode" class="form-label">Mode de remise</label>
-                            <select class="form-select" id="mode" name="mode">
-                                <option value="">Tous les modes</option>
-                                <option th:each="m : ${modes}" th:value="${m}" th:text="${m.displayName}"
-                                        th:selected="${criteria?.modeLivraison == m}"></option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="keywords" class="form-label">Mots-clés</label>
-                            <input type="text" class="form-control" id="keywords" name="keywords"
-                                   th:value="${criteria?.keywordsInput}" placeholder="meubles, déco...">
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between mt-3">
-                        <a th:href="@{/search}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle"></i> Réinitialiser
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search"></i> Rechercher
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div sec:authorize="isAuthenticated()" th:if="${criteria != null && !criteria.isEmpty()}" class="mb-4">
-            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#saveSearchModal">
-                <i class="bi bi-bookmark-plus"></i> Sauvegarder cette recherche
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">
+                <i class="bi bi-search"></i> Rechercher des annonces
+            </h1>
+            <button class="btn btn-outline-primary d-md-none"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#searchFilters"
+                    aria-expanded="false"
+                    aria-controls="searchFilters">
+                <i class="bi bi-funnel"></i> Filtres
             </button>
         </div>
 
-        <div th:if="${annonces.isEmpty()}" class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Aucun résultat trouvé pour votre recherche.
-        </div>
-
-        <div th:unless="${annonces.isEmpty()}">
-            <p class="text-muted mb-3">
-                <span th:text="${annonces.totalElements}"></span> résultat(s) trouvé(s)
-            </p>
-
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-                <div class="col" th:each="annonce : ${annonces.content}">
-                    <div class="card h-100 shadow-sm">
-                        <!-- Image de l'annonce -->
-                        <div class="position-relative" style="height: 200px; overflow: hidden;">
-                            <img th:if="${annonce.imageUrl != null}"
-                                 th:src="@{${annonce.imageUrl}}"
-                                 class="card-img-top w-100 h-100"
-                                 style="object-fit: cover;"
-                                 th:alt="${annonce.titre}">
-                            <div th:unless="${annonce.imageUrl != null}"
-                                 class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
-                                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card shadow mb-4 collapse show" id="searchFilters">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-sliders"></i> Filtres
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/search}" method="get" id="searchForm">
+                            <div class="mb-3">
+                                <label for="query" class="form-label fw-bold">
+                                    <i class="bi bi-search"></i> Recherche
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="query"
+                                       name="query"
+                                       th:value="${criteria?.query}"
+                                       placeholder="Mot-clé..."
+                                       autocomplete="off">
                             </div>
-                            <span th:if="${annonce.reserved}"
-                                  class="position-absolute top-0 end-0 m-2 badge bg-warning">Réservé</span>
-                        </div>
 
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a th:href="@{/annonces/{id}(id=${annonce.id})}"
-                                   th:text="${annonce.titre}" class="text-decoration-none stretched-link"></a>
-                            </h5>
-                            <p class="card-text text-muted small" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
-                            <div class="d-flex flex-wrap gap-1 mb-2">
-                                <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
-                                <span class="badge bg-info" th:text="${annonce.modeLivraison.displayName}"></span>
+                            <div class="mb-3">
+                                <label for="zone" class="form-label fw-bold">
+                                    <i class="bi bi-geo-alt"></i> Localisation
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="zone"
+                                       name="zone"
+                                       th:value="${criteria?.zoneGeographique}"
+                                       placeholder="Ville, région...">
                             </div>
-                            <small class="text-muted">
-                                <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
-                            </small>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <small class="text-muted">
-                                <i class="bi bi-person"></i> <span th:text="${annonce.ownerUsername}"></span>
-                            </small>
-                        </div>
+
+                            <div class="mb-3">
+                                <label for="etat" class="form-label fw-bold">
+                                    <i class="bi bi-star"></i> État
+                                </label>
+                                <select class="form-select" id="etat" name="etat">
+                                    <option value="">Tous les états</option>
+                                    <option th:each="e : ${etats}"
+                                            th:value="${e}"
+                                            th:text="${e.displayName}"
+                                            th:selected="${criteria?.etatObjet == e}"></option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="mode" class="form-label fw-bold">
+                                    <i class="bi bi-truck"></i> Mode de remise
+                                </label>
+                                <select class="form-select" id="mode" name="mode">
+                                    <option value="">Tous les modes</option>
+                                    <option th:each="m : ${modes}"
+                                            th:value="${m}"
+                                            th:text="${m.displayName}"
+                                            th:selected="${criteria?.modeLivraison == m}"></option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="keywords" class="form-label fw-bold">
+                                    <i class="bi bi-tags"></i> Mots-clés
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="keywords"
+                                       name="keywords"
+                                       th:value="${criteria?.keywordsInput}"
+                                       placeholder="meubles, déco...">
+                                <small class="text-muted">Séparés par des virgules</small>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Rechercher
+                                </button>
+                                <a th:href="@{/search}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow d-none d-md-block" sec:authorize="isAuthenticated()">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-lightbulb text-warning"></i> Astuce
+                        </h6>
+                        <p class="small mb-2">
+                            Sauvegardez cette recherche pour être notifié des nouvelles annonces !
+                        </p>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-success w-100"
+                                data-bs-toggle="modal"
+                                data-bs-target="#saveSearchModal"
+                                th:if="${criteria != null && !criteria.isEmpty()}">
+                            <i class="bi bi-bookmark-plus"></i> Sauvegarder
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/search')}"></div>
+            <div class="col-md-9">
+                <div th:if="${criteria != null && !criteria.isEmpty()}" class="mb-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="text-muted">Filtres actifs :</span>
+                        <span th:if="${criteria.query}" class="filter-chip active">
+                            <i class="bi bi-search"></i> <span th:text="${criteria.query}"></span>
+                            <a th:href="@{/search(zone=${criteria.zoneGeographique},etat=${criteria.etatObjet},mode=${criteria.modeLivraison},keywords=${criteria.keywordsInput})}"
+                               class="remove text-decoration-none">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </span>
+                        <span th:if="${criteria.zoneGeographique}" class="filter-chip active">
+                            <i class="bi bi-geo-alt"></i> <span th:text="${criteria.zoneGeographique}"></span>
+                            <a th:href="@{/search(query=${criteria.query},etat=${criteria.etatObjet},mode=${criteria.modeLivraison},keywords=${criteria.keywordsInput})}"
+                               class="remove text-decoration-none">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </span>
+                        <span th:if="${criteria.etatObjet}" class="filter-chip active">
+                            <i class="bi bi-star"></i> <span th:text="${criteria.etatObjet.displayName}"></span>
+                            <a th:href="@{/search(query=${criteria.query},zone=${criteria.zoneGeographique},mode=${criteria.modeLivraison},keywords=${criteria.keywordsInput})}"
+                               class="remove text-decoration-none">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </span>
+                        <span th:if="${criteria.modeLivraison}" class="filter-chip active">
+                            <i class="bi bi-truck"></i> <span th:text="${criteria.modeLivraison.displayName}"></span>
+                            <a th:href="@{/search(query=${criteria.query},zone=${criteria.zoneGeographique},etat=${criteria.etatObjet},keywords=${criteria.keywordsInput})}"
+                               class="remove text-decoration-none">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span th:if="${!annonces.isEmpty()}" class="text-muted">
+                            <strong th:text="${annonces.totalElements}"></strong> résultat(s) trouvé(s)
+                        </span>
+                    </div>
+                    <div th:if="${!annonces.isEmpty()}" class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" id="gridView">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="listView">
+                            <i class="bi bi-list-ul"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div th:if="${annonces.isEmpty()}" class="empty-state">
+                    <i class="bi bi-search display-1"></i>
+                    <h3>Aucun résultat trouvé</h3>
+                    <p class="text-muted">
+                        <span th:if="${criteria != null && !criteria.isEmpty()}">
+                            Essayez d'élargir vos critères de recherche
+                        </span>
+                        <span th:unless="${criteria != null && !criteria.isEmpty()}">
+                            Commencez par saisir des critères de recherche
+                        </span>
+                    </p>
+                    <a th:href="@{/annonces}" class="btn btn-primary">
+                        <i class="bi bi-list-ul"></i> Voir toutes les annonces
+                    </a>
+                </div>
+
+                <div th:unless="${annonces.isEmpty()}" id="resultsContainer">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="gridResults">
+                        <div class="col" th:each="annonce : ${annonces.content}">
+                            <div class="card h-100 shadow-sm">
+                                <div class="position-relative" style="height: 200px; overflow: hidden;">
+                                    <img th:if="${annonce.imageUrl != null}"
+                                         th:src="@{${annonce.imageUrl}}"
+                                         class="card-img-top w-100 h-100"
+                                         style="object-fit: cover;"
+                                         th:alt="${annonce.titre}">
+                                    <div th:unless="${annonce.imageUrl != null}"
+                                         class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                                    </div>
+                                    <span th:if="${annonce.reserved}"
+                                          class="position-absolute top-0 end-0 m-2 badge bg-warning">
+                                        <i class="bi bi-bookmark-fill"></i> Réservé
+                                    </span>
+                                </div>
+
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                                           th:text="${annonce.titre}"
+                                           class="text-decoration-none stretched-link"></a>
+                                    </h5>
+                                    <p class="card-text text-muted small"
+                                       th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        <span class="badge bg-secondary"
+                                              th:text="${annonce.etatObjet.displayName}"></span>
+                                        <span class="badge bg-info"
+                                              th:text="${annonce.modeLivraison.displayName}"></span>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt"></i>
+                                        <span th:text="${annonce.zoneGeographique}"></span>
+                                    </small>
+                                </div>
+                                <div class="card-footer bg-transparent border-top-0">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person"></i>
+                                        <span th:text="${annonce.ownerUsername}"></span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-group d-none" id="listResults">
+                        <a th:each="annonce : ${annonces.content}"
+                           th:href="@{/annonces/{id}(id=${annonce.id})}"
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 gap-3">
+                                <div style="width: 120px; height: 90px; flex-shrink: 0; overflow: hidden; border-radius: 0.375rem;">
+                                    <img th:if="${annonce.imageUrl != null}"
+                                         th:src="@{${annonce.imageUrl}}"
+                                         class="w-100 h-100"
+                                         style="object-fit: cover;"
+                                         th:alt="${annonce.titre}">
+                                    <div th:unless="${annonce.imageUrl != null}"
+                                         class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-image text-muted"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="mb-1 fw-bold" th:text="${annonce.titre}"></h6>
+                                        <span th:if="${annonce.reserved}" class="badge bg-warning ms-2">
+                                            Réservé
+                                        </span>
+                                    </div>
+                                    <p class="mb-2 text-muted small"
+                                       th:text="${#strings.abbreviate(annonce.description, 150)}"></p>
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        <span class="badge bg-secondary"
+                                              th:text="${annonce.etatObjet.displayName}"></span>
+                                        <span class="badge bg-info"
+                                              th:text="${annonce.modeLivraison.displayName}"></span>
+                                        <small class="text-muted">
+                                            <i class="bi bi-geo-alt"></i>
+                                            <span th:text="${annonce.zoneGeographique}"></span>
+                                        </small>
+                                        <small class="text-muted ms-auto">
+                                            <i class="bi bi-person"></i>
+                                            <span th:text="${annonce.ownerUsername}"></span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/search?query=' + ${criteria?.query ?: ''} + '&zone=' + ${criteria?.zoneGeographique ?: ''} + '&etat=' + ${criteria?.etatObjet ?: ''} + '&mode=' + ${criteria?.modeLivraison ?: ''} + '&keywords=' + ${criteria?.keywordsInput ?: ''})}"></div>
+                </div>
+            </div>
         </div>
     </div>
 </main>
 
-<!-- Modal Sauvegarder recherche -->
-<div class="modal fade" id="saveSearchModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="saveSearchModal" tabindex="-1" sec:authorize="isAuthenticated()">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form th:action="@{/search/save}" method="post">
                 <div class="modal-header">
-                    <h5 class="modal-title">Sauvegarder la recherche</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">
+                        <i class="bi bi-bookmark-plus"></i> Sauvegarder la recherche
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="query" th:value="${criteria?.query}">
@@ -137,21 +315,43 @@
                     <input type="hidden" name="keywords" th:value="${criteria?.keywordsInput}">
 
                     <div class="mb-3">
-                        <label for="searchName" class="form-label">Nom de la recherche *</label>
-                        <input type="text" class="form-control" id="searchName" name="name" required
-                               placeholder="Ex: Meubles à Paris">
+                        <label for="searchName" class="form-label fw-bold">
+                            Nom de la recherche *
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               id="searchName"
+                               name="name"
+                               required
+                               placeholder="Ex: Meubles à Paris"
+                               maxlength="100">
                     </div>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="notifications" name="notifications" value="true" checked>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <small>
+                            Vous serez notifié lorsque de nouvelles annonces correspondront à ces critères
+                        </small>
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               id="notifications"
+                               name="notifications"
+                               value="true"
+                               checked>
                         <label class="form-check-label" for="notifications">
-                            Recevoir des notifications pour les nouvelles annonces correspondantes
+                            Activer les notifications
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Annuler
+                    </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-bookmark-plus"></i> Sauvegarder
+                        <i class="bi bi-bookmark-check"></i> Sauvegarder
                     </button>
                 </div>
             </form>
@@ -161,5 +361,58 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+<script>
+    document.getElementById('gridView').addEventListener('click', function() {
+        document.getElementById('gridResults').classList.remove('d-none');
+        document.getElementById('listResults').classList.add('d-none');
+        this.classList.add('active');
+        document.getElementById('listView').classList.remove('active');
+        localStorage.setItem('viewMode', 'grid');
+    });
+
+    document.getElementById('listView').addEventListener('click', function() {
+        document.getElementById('listResults').classList.remove('d-none');
+        document.getElementById('gridResults').classList.add('d-none');
+        this.classList.add('active');
+        document.getElementById('gridView').classList.remove('active');
+        localStorage.setItem('viewMode', 'list');
+    });
+
+    const savedViewMode = localStorage.getItem('viewMode');
+    if (savedViewMode === 'list') {
+        document.getElementById('listView').click();
+    }
+
+    const searchForm = document.getElementById('searchForm');
+    const inputs = searchForm.querySelectorAll('input, select');
+
+    inputs.forEach(input => {
+        input.addEventListener('change', debounce(function() {
+            const formData = new FormData(searchForm);
+            const params = new URLSearchParams(formData).toString();
+            if (params) {
+                updateURL(params);
+            }
+        }, 500));
+    });
+
+    function updateURL(params) {
+        const newURL = window.location.pathname + '?' + params;
+        window.history.pushState({ path: newURL }, '', newURL);
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+</script>
 </body>
 </html>

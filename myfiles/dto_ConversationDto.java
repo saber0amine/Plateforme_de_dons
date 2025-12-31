@@ -12,4 +12,6 @@ public class ConversationDto {
     private User partner;
     private MessageDto lastMessage;
     private long unreadCount;
+    private Long annonceId;
+    private String annonceTitre;
 }
