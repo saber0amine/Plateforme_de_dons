@@ -1,5 +1,6 @@
 package com.dev.plateforme_de_dons.service;
 
+import com.dev.plateforme_de_dons.dto.ConversationDto;
 import com.dev.plateforme_de_dons.dto.MessageDto;
 import com.dev.plateforme_de_dons.model.Annonce;
 import com.dev.plateforme_de_dons.model.Message;
@@ -50,6 +51,39 @@ public class MessageService {
         notificationService.createMessageNotification(receiver, sender, message);
 
         return message;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConversationDto> getConversationsWithLastMessage(User user) {
+        List<User> partners = getConversationPartners(user);
+
+        List<ConversationDto> conversations = new ArrayList<>();
+
+        for (User partner : partners) {
+            List<Message> messages = messageRepository.findConversation(user, partner, null);
+
+            if (!messages.isEmpty()) {
+                Message lastMessage = messages.get(messages.size() - 1);
+
+                long unreadCount = messages.stream()
+                        .filter(m -> m.getReceiver().getId().equals(user.getId()))
+                        .filter(m -> !m.isRead())
+                        .count();
+
+                ConversationDto conv = new ConversationDto();
+                conv.setPartner(partner);
+                conv.setLastMessage(convertToDto(lastMessage));
+                conv.setUnreadCount(unreadCount);
+
+                conversations.add(conv);
+            }
+        }
+
+        conversations.sort((c1, c2) ->
+                c2.getLastMessage().getSentAt().compareTo(c1.getLastMessage().getSentAt())
+        );
+
+        return conversations;
     }
 
     @Transactional(readOnly = true)

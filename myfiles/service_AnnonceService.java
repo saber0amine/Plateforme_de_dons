@@ -4,8 +4,9 @@ import com.dev.plateforme_de_dons.dto.AnnonceDto;
 import com.dev.plateforme_de_dons.dto.SearchCriteriaDto;
 import com.dev.plateforme_de_dons.model.*;
 import com.dev.plateforme_de_dons.repository.AnnonceRepository;
+import com.dev.plateforme_de_dons.repository.FavoriteRepository;
 import com.dev.plateforme_de_dons.repository.KeywordRepository;
- import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ public class AnnonceService {
 
     private final AnnonceRepository annonceRepository;
     private final KeywordRepository keywordRepository;
+    private final FavoriteRepository favoriteRepository;
+    private final ImageService imageService;
 
     public Annonce createAnnonce(AnnonceDto dto, User owner) {
         Annonce annonce = new Annonce();
@@ -222,8 +225,18 @@ public class AnnonceService {
         if (annonce.getLot() != null) {
             dto.setLotId(annonce.getLot().getId());
         }
-        dto.setFavoriteCount(annonce.getFavorites().size());
-        dto.setImageUrl(annonce.getImageUrl());
+        dto.setFavoriteCount((int) favoriteRepository.countByAnnonce(annonce));
+
+         dto.setImages(imageService.convertToDtoList(annonce.getImages()));
+
+         Image primaryImage = annonce.getPrimaryImage();
+        if (primaryImage != null) {
+            dto.setPrimaryImage(imageService.convertToDto(primaryImage));
+            dto.setImageUrl("/api/images/" + primaryImage.getId());
+        } else {
+            dto.setImageUrl(null);
+        }
+
         return dto;
     }
 }

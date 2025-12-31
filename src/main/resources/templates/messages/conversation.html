@@ -48,7 +48,6 @@
 
                     <div class="card-footer bg-white">
                         <form th:action="@{/messages}" method="post">
-                            <!-- Champs cachés obligatoires -->
                             <input type="hidden" name="receiverId" th:value="${otherUser.id}">
                             <input type="hidden" name="annonceId" th:value="${annonce != null ? annonce.id : null}">
 

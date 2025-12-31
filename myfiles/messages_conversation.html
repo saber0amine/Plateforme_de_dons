@@ -2,77 +2,80 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Conversation avec ' + ${otherUser.username})}"></head>
 <body class="d-flex flex-column min-vh-100">
-    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-    <main class="flex-grow-1 py-4">
-        <div class="container">
-            <div th:replace="~{fragments/layout :: alerts}"></div>
+<main class="flex-grow-1 py-4">
+    <div class="container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
 
-            <nav aria-label="breadcrumb" class="mb-4">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a th:href="@{/messages}">Messages</a></li>
-                    <li class="breadcrumb-item active" th:text="${otherUser.username}"></li>
-                </ol>
-            </nav>
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/messages}">Messages</a></li>
+                <li class="breadcrumb-item active" th:text="${otherUser.username}"></li>
+            </ol>
+        </nav>
 
-            <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <div class="card shadow">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="bi bi-person-circle"></i>
-                                Conversation avec <span th:text="${otherUser.username}"></span>
-                            </h5>
-                            <span th:if="${annonce != null}" class="badge bg-light text-dark">
-                                <i class="bi bi-tag"></i> <span th:text="${annonce.titre}"></span>
-                            </span>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-circle"></i>
+                            Conversation avec <span th:text="${otherUser.username}"></span>
+                        </h5>
+                        <span th:if="${annonce != null}" class="badge bg-light text-dark">
+                            <i class="bi bi-tag"></i> <span th:text="${annonce.titre}"></span>
+                        </span>
+                    </div>
+
+                    <div class="card-body" style="max-height: 500px; overflow-y: auto; background-color: #f8f9fa;" id="messagesContainer">
+                        <div th:if="${messages.isEmpty()}" class="text-center py-4 text-muted">
+                            <i class="bi bi-chat-dots fs-1"></i>
+                            <p>Démarrez la conversation !</p>
                         </div>
 
-                        <div class="card-body" style="max-height: 400px; overflow-y: auto;" id="messagesContainer">
-                            <div th:if="${messages.isEmpty()}" class="text-center py-4 text-muted">
-                                <i class="bi bi-chat-dots fs-1"></i>
-                                <p>Démarrez la conversation !</p>
+                        <div th:each="msg : ${messages}" class="mb-3"
+                             th:classappend="${msg.senderUsername != otherUser.username} ? 'text-end' : ''">
+                            <div class="d-inline-block p-3 rounded-3"
+                                 style="max-width: 75%;"
+                                 th:classappend="${msg.senderUsername != otherUser.username} ? 'bg-primary text-white' : 'bg-white border'">
+                                <p class="mb-1" th:text="${msg.content}" style="white-space: pre-line;"></p>
+                                <small th:classappend="${msg.senderUsername != otherUser.username} ? 'text-white-50' : 'text-muted'"
+                                       th:text="${#temporals.format(msg.sentAt, 'dd/MM HH:mm')}"></small>
                             </div>
+                        </div>
+                    </div>
 
-                            <div th:each="msg : ${messages}" class="mb-3"
-                                 th:classappend="${msg.senderUsername != otherUser.username} ? 'text-end' : ''">
-                                <div class="d-inline-block p-3 rounded-3"
-                                     th:classappend="${msg.senderUsername != otherUser.username} ? 'bg-primary text-white' : 'bg-light'">
-                                    <p class="mb-1" th:text="${msg.content}" style="white-space: pre-line;"></p>
-                                    <small th:classappend="${msg.senderUsername != otherUser.username} ? 'text-white-50' : 'text-muted'"
-                                           th:text="${#temporals.format(msg.sentAt, 'dd/MM HH:mm')}"></small>
-                                </div>
+                    <div class="card-footer bg-white">
+                        <form th:action="@{/messages}" method="post">
+                            <!-- Champs cachés obligatoires -->
+                            <input type="hidden" name="receiverId" th:value="${otherUser.id}">
+                            <input type="hidden" name="annonceId" th:value="${annonce != null ? annonce.id : null}">
+
+                            <div class="input-group">
+                                <textarea class="form-control" name="content" rows="2"
+                                          placeholder="Votre message..." required></textarea>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
                             </div>
-                        </div>
-
-                        <div class="card-footer">
-                            <form th:action="@{/messages}" th:object="${newMessage}" method="post">
-                                <input type="hidden" th:field="*{receiverId}" th:value="${otherUser.id}">
-                                <input type="hidden" th:field="*{annonceId}" th:value="${annonce?.id}">
-
-                                <div class="input-group">
-                                    <textarea class="form-control" th:field="*{content}" rows="2"
-                                              placeholder="Votre message..." required></textarea>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-send"></i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+</main>
 
-    <footer th:replace="~{fragments/layout :: footer}"></footer>
-    <div th:replace="~{fragments/layout :: scripts}"></div>
-    <script>
-        // Scroll to bottom of messages
-        document.addEventListener('DOMContentLoaded', function() {
-            var container = document.getElementById('messagesContainer');
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var container = document.getElementById('messagesContainer');
+        if (container) {
             container.scrollTop = container.scrollHeight;
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>

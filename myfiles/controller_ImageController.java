@@ -131,8 +131,7 @@ public class ImageController {
         Image image = imageService.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image non trouvée"));
 
-        // Vérifier que l'utilisateur est propriétaire
-        boolean isOwner = false;
+         boolean isOwner = false;
         if (image.getAnnonce() != null) {
             isOwner = image.getAnnonce().getOwner().getId().equals(user.getId());
         } else if (image.getLot() != null) {
@@ -165,8 +164,7 @@ public class ImageController {
         Image image = imageService.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Image non trouvée"));
 
-        // Vérifier que l'utilisateur est propriétaire
-        boolean isOwner = false;
+         boolean isOwner = false;
         if (image.getAnnonce() != null) {
             isOwner = image.getAnnonce().getOwner().getId().equals(user.getId());
         } else if (image.getLot() != null) {

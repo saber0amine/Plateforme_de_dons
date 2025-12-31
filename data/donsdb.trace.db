@@ -1,0 +1,6 @@
+2025-12-30 22:04:06.841805+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "DELETE [*]* FROM MESSAGES"; expected "identifier"; SQL statement:
+DELETE * FROM MESSAGES [42001-232]
+2025-12-30 22:04:13.521921+01:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "[*]DELET * FROM MESSAGES"; expected "DELETE, DROP"; SQL statement:
+DELET * FROM MESSAGES [42001-232]

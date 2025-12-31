@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -15,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "annonces", indexes = {
@@ -23,7 +25,8 @@ import java.util.List;
         @Index(name = "idx_annonce_date", columnList = "datePublication"),
         @Index(name = "idx_annonce_active", columnList = "active")
 })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Annonce {
@@ -118,11 +121,23 @@ public class Annonce {
         image.setAnnonce(null);
     }
 
-
     public Image getPrimaryImage() {
         return images.stream()
                 .filter(Image::isPrimary)
                 .findFirst()
                 .orElse(images.isEmpty() ? null : images.get(0));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Annonce annonce = (Annonce) o;
+        return id != null && Objects.equals(id, annonce.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

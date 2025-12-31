@@ -11,7 +11,9 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -53,4 +55,7 @@ public class AnnonceDto {
     private Long lotId;
     private int favoriteCount;
     private String imageUrl;
+
+     private List<ImageDto> images = new ArrayList<>();
+    private ImageDto primaryImage;
 }

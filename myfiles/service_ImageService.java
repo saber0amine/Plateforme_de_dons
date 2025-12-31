@@ -37,7 +37,7 @@ public class ImageService {
             "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
     );
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     public Image uploadImageForAnnonce(MultipartFile file, Annonce annonce, boolean isPrimary) throws IOException {
         validateImage(file);
@@ -46,15 +46,12 @@ public class ImageService {
         String storagePath = "annonces/" + annonce.getId();
         Path uploadPath = Paths.get(uploadDir, storagePath);
 
-        // Créer le dossier s'il n'existe pas
-        Files.createDirectories(uploadPath);
+         Files.createDirectories(uploadPath);
 
-        // Sauvegarder le fichier
-        Path filePath = uploadPath.resolve(filename);
+         Path filePath = uploadPath.resolve(filename);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        // Si c'est l'image principale, retirer le flag des autres
-        if (isPrimary) {
+         if (isPrimary) {
             annonce.getImages().forEach(img -> img.setPrimary(false));
         }
 
@@ -125,12 +122,10 @@ public class ImageService {
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new IllegalArgumentException("Image non trouvée"));
 
-        // Supprimer le fichier physique
-        Path imagePath = Paths.get(uploadDir, image.getStoragePath());
+         Path imagePath = Paths.get(uploadDir, image.getStoragePath());
         Files.deleteIfExists(imagePath);
 
-        // Supprimer l'enregistrement en base
-        imageRepository.delete(image);
+         imageRepository.delete(image);
     }
 
     public void setPrimaryImage(Long imageId) {

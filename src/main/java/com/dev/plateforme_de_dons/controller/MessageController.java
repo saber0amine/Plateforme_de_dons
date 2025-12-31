@@ -172,8 +172,12 @@ public class MessageController {
         try {
             messageService.sendMessage(messageDto, sender);
             redirectAttributes.addFlashAttribute("success", "Message envoyé avec succès !");
-            return "redirect:/messages/conversation/" + messageDto.getReceiverId() +
-                    (messageDto.getAnnonceId() != null ? "?annonceId=" + messageDto.getAnnonceId() : "");
+
+            String redirectUrl = "/messages/conversation/" + messageDto.getReceiverId();
+            if (messageDto.getAnnonceId() != null) {
+                redirectUrl += "?annonceId=" + messageDto.getAnnonceId();
+            }
+            return "redirect:" + redirectUrl;
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
             return "messages/new";

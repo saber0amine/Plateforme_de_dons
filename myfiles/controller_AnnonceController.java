@@ -8,6 +8,7 @@ import com.dev.plateforme_de_dons.model.ModeLivraison;
 import com.dev.plateforme_de_dons.model.User;
 import com.dev.plateforme_de_dons.service.AnnonceService;
 import com.dev.plateforme_de_dons.service.FavoriteService;
+import com.dev.plateforme_de_dons.service.ImageService;
 import com.dev.plateforme_de_dons.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -39,6 +41,7 @@ public class AnnonceController {
     private final AnnonceService annonceService;
     private final UserService userService;
     private final FavoriteService favoriteService;
+    private final ImageService imageService;
 
     @GetMapping
     public String listAnnonces(
@@ -115,6 +118,7 @@ public class AnnonceController {
     public String createAnnonce(
             @Valid @ModelAttribute("annonce") AnnonceDto annonceDto,
             BindingResult result,
+            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
             Authentication authentication,
             RedirectAttributes redirectAttributes,
             Model model) {
@@ -122,6 +126,7 @@ public class AnnonceController {
         if (result.hasErrors()) {
             model.addAttribute("etats", EtatObjet.values());
             model.addAttribute("modes", ModeLivraison.values());
+            model.addAttribute("editing", false);
             return "annonces/form";
         }
 
@@ -129,13 +134,27 @@ public class AnnonceController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
         try {
+            // Créer l'annonce
             Annonce annonce = annonceService.createAnnonce(annonceDto, user);
+
+            // Uploader les images si présentes
+            if (imageFiles != null && !imageFiles.isEmpty()) {
+                boolean firstImage = true;
+                for (MultipartFile file : imageFiles) {
+                    if (!file.isEmpty()) {
+                        imageService.uploadImageForAnnonce(file, annonce, firstImage);
+                        firstImage = false; // Seulement la première est primary
+                    }
+                }
+            }
+
             redirectAttributes.addFlashAttribute("success", "Annonce créée avec succès !");
             return "redirect:/annonces/" + annonce.getId();
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+            model.addAttribute("error", "Erreur lors de la création : " + e.getMessage());
             model.addAttribute("etats", EtatObjet.values());
             model.addAttribute("modes", ModeLivraison.values());
+            model.addAttribute("editing", false);
             return "annonces/form";
         }
     }
@@ -178,6 +197,7 @@ public class AnnonceController {
             @PathVariable Long id,
             @Valid @ModelAttribute("annonce") AnnonceDto annonceDto,
             BindingResult result,
+            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
             Authentication authentication,
             RedirectAttributes redirectAttributes,
             Model model) {
@@ -193,11 +213,26 @@ public class AnnonceController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
         try {
-            annonceService.updateAnnonce(id, annonceDto, user);
+            // Mettre à jour l'annonce
+            Annonce annonce = annonceService.updateAnnonce(id, annonceDto, user);
+
+            // Uploader les nouvelles images si présentes
+            if (imageFiles != null && !imageFiles.isEmpty()) {
+                boolean hasPrimaryImage = !annonce.getImages().isEmpty() &&
+                        annonce.getImages().stream().anyMatch(img -> img.isPrimary());
+
+                for (MultipartFile file : imageFiles) {
+                    if (!file.isEmpty()) {
+                        imageService.uploadImageForAnnonce(file, annonce, !hasPrimaryImage);
+                        hasPrimaryImage = true; // Après la première, on a une image primary
+                    }
+                }
+            }
+
             redirectAttributes.addFlashAttribute("success", "Annonce mise à jour avec succès !");
             return "redirect:/annonces/" + id;
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            model.addAttribute("error", "Erreur lors de la mise à jour : " + e.getMessage());
             model.addAttribute("etats", EtatObjet.values());
             model.addAttribute("modes", ModeLivraison.values());
             model.addAttribute("editing", true);
