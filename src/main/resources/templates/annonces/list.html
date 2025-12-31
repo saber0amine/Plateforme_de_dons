@@ -5,74 +5,404 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<main class="flex-grow-1 py-4">
+<main class="flex-grow-1 py-4" style="background: #f8f9fa;">
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="bi bi-list-ul"></i> Toutes les annonces</h1>
-            <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Créer une annonce
-            </a>
-        </div>
-
-        <div th:if="${annonces.isEmpty()}" class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Aucune annonce disponible pour le moment.
-        </div>
-
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" th:unless="${annonces.isEmpty()}">
-            <div class="col" th:each="annonce : ${annonces.content}">
-                <div class="card h-100 shadow-sm">
-                    <!-- Image de l'annonce -->
-                    <div class="position-relative" style="height: 200px; overflow: hidden;">
-                        <img th:if="${annonce.imageUrl != null}"
-                             th:src="@{${annonce.imageUrl}}"
-                             class="card-img-top w-100 h-100"
-                             style="object-fit: cover;"
-                             th:alt="${annonce.titre}">
-                        <div th:unless="${annonce.imageUrl != null}"
-                             class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
-                            <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
-                        </div>
-                        <!-- Badge réservé -->
-                        <span th:if="${annonce.reserved}"
-                              class="position-absolute top-0 end-0 m-2 badge bg-warning">Réservé</span>
-                    </div>
-
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <a th:href="@{/annonces/{id}(id=${annonce.id})}"
-                               th:text="${annonce.titre}" class="text-decoration-none stretched-link"></a>
-                        </h5>
-                        <p class="card-text text-muted small" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
-                        <div class="d-flex flex-wrap gap-1 mb-2">
-                            <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
-                            <span class="badge bg-info" th:text="${annonce.modeLivraison.displayName}"></span>
-                        </div>
-                        <div th:if="${!annonce.keywords.isEmpty()}" class="mb-2">
-                                <span th:each="keyword : ${annonce.keywords}" class="badge bg-light text-dark me-1"
-                                      th:text="${keyword}"></span>
-                        </div>
-                        <small class="text-muted">
-                            <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
-                        </small>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <small class="text-muted">
-                            <i class="bi bi-person"></i> <span th:text="${annonce.ownerUsername}"></span> |
-                            <i class="bi bi-calendar"></i>
-                            <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}"></span>
-                        </small>
-                    </div>
+        <div class="page-header mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="fw-bold mb-2">
+                        <i class="bi bi-grid-3x3-gap-fill text-primary"></i> Toutes les annonces
+                    </h1>
+                    <p class="text-muted mb-0">
+                        <span th:text="${annonces.totalElements}">0</span> annonce(s) disponible(s)
+                    </p>
                 </div>
+                <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()"
+                   class="btn btn-primary btn-lg shadow-sm">
+                    <i class="bi bi-plus-circle"></i> Créer une annonce
+                </a>
             </div>
         </div>
 
-        <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/annonces')}"></div>
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="filters-sidebar sticky-top" style="top: 20px;">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-0 py-3">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="bi bi-funnel-fill text-primary"></i> Filtres
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/search}" method="get">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small text-muted">
+                                        <i class="bi bi-search"></i> RECHERCHE
+                                    </label>
+                                    <input type="text" name="query" class="form-control"
+                                           placeholder="Mots-clés...">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small text-muted">
+                                        <i class="bi bi-geo-alt"></i> LOCALISATION
+                                    </label>
+                                    <input type="text" name="zone" class="form-control"
+                                           placeholder="Ville, région...">
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small text-muted">
+                                        <i class="bi bi-tag"></i> ÉTAT
+                                    </label>
+                                    <select name="etat" class="form-select">
+                                        <option value="">Tous les états</option>
+                                        <option value="NEUF">Neuf</option>
+                                        <option value="TRES_BON_ETAT">Très bon état</option>
+                                        <option value="BON_ETAT">Bon état</option>
+                                        <option value="ETAT_CORRECT">État correct</option>
+                                        <option value="A_REPARER">À réparer</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold small text-muted">
+                                        <i class="bi bi-truck"></i> MODE DE REMISE
+                                    </label>
+                                    <select name="mode" class="form-select">
+                                        <option value="">Tous les modes</option>
+                                        <option value="MAIN_PROPRE">En main propre</option>
+                                        <option value="ENVOI">Envoi possible</option>
+                                        <option value="LES_DEUX">Les deux</option>
+                                    </select>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-search"></i> Rechercher
+                                    </button>
+                                    <a th:href="@{/annonces}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Réinitialiser
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start">
+                                <i class="bi bi-lightbulb-fill text-primary me-2 fs-5"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Astuce</h6>
+                                    <small class="text-muted">
+                                        Activez les notifications pour être alerté des nouvelles annonces !
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <div class="view-controls btn-group shadow-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" onclick="setView('grid')">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="setView('list')">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle shadow-sm"
+                                type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-sort-down"></i> Trier par
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="#">Plus récentes</a></li>
+                            <li><a class="dropdown-item" href="#">Plus anciennes</a></li>
+                            <li><a class="dropdown-item" href="#">Titre A-Z</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div th:if="${annonces.isEmpty()}" class="text-center py-5">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body py-5">
+                            <i class="bi bi-inbox display-1 text-muted opacity-50 mb-3"></i>
+                            <h4>Aucune annonce disponible</h4>
+                            <p class="text-muted">Soyez le premier à partager !</p>
+                            <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()"
+                               class="btn btn-primary btn-lg mt-3">
+                                <i class="bi bi-plus-circle"></i> Créer une annonce
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="annoncesGrid" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4"
+                     th:unless="${annonces.isEmpty()}">
+                    <div class="col" th:each="annonce : ${annonces.content}">
+                        <div class="card annonce-card h-100 border-0 shadow-sm">
+                            <div class="card-img-wrapper position-relative">
+                                <img th:if="${annonce.imageUrl != null}"
+                                     th:src="@{${annonce.imageUrl}}"
+                                     class="card-img-top annonce-img"
+                                     th:alt="${annonce.titre}">
+                                <div th:unless="${annonce.imageUrl != null}"
+                                     class="card-img-placeholder">
+                                    <i class="bi bi-image"></i>
+                                    <span>Pas d'image</span>
+                                </div>
+
+                                <div class="card-badges">
+                                    <span th:if="${annonce.reserved}"
+                                          class="badge badge-floating badge-warning">
+                                        <i class="bi bi-bookmark-fill"></i> Réservé
+                                    </span>
+                                </div>
+
+                                <div class="card-quick-actions">
+                                    <button class="btn btn-sm btn-light rounded-circle"
+                                            title="Ajouter aux favoris">
+                                        <i class="bi bi-heart"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-light rounded-circle"
+                                            title="Partager">
+                                        <i class="bi bi-share"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-2">
+                                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary">
+                                        <i class="bi bi-tag-fill"></i>
+                                        <span th:text="${annonce.etatObjet.displayName}"></span>
+                                    </span>
+                                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info">
+                                        <i class="bi bi-truck"></i>
+                                        <span th:text="${annonce.modeLivraison.displayName}"></span>
+                                    </span>
+                                </div>
+
+                                <h5 class="card-title fw-bold mb-2">
+                                    <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                                       class="text-decoration-none text-dark stretched-link"
+                                       th:text="${annonce.titre}"></a>
+                                </h5>
+
+                                <p class="card-text text-muted small mb-3 flex-grow-1"
+                                   th:text="${#strings.abbreviate(annonce.description, 120)}"></p>
+
+                                <div th:if="${!annonce.keywords.isEmpty()}" class="mb-3">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <span th:each="keyword : ${annonce.keywords}"
+                                              th:if="${keywordStat.index < 3}"
+                                              class="badge bg-light text-dark small">
+                                            #<span th:text="${keyword}"></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="card-footer-meta">
+                                    <div class="d-flex align-items-center text-muted small mb-2">
+                                        <i class="bi bi-geo-alt-fill text-primary me-1"></i>
+                                        <span th:text="${annonce.zoneGeographique}"></span>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <div class="avatar-sm me-2">
+                                                <i class="bi bi-person-circle"></i>
+                                            </div>
+                                            <span th:text="${annonce.ownerUsername}"></span>
+                                        </div>
+                                        <div class="d-flex align-items-center text-muted small">
+                                            <i class="bi bi-clock me-1"></i>
+                                            <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div th:unless="${annonces.isEmpty()}" class="mt-4">
+                    <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/annonces')}"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+<style>
+    .page-header {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .filters-sidebar .form-label {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .filters-sidebar .form-control,
+    .filters-sidebar .form-select {
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        padding: 0.625rem 0.875rem;
+    }
+
+    .filters-sidebar .form-control:focus,
+    .filters-sidebar .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .annonce-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .annonce-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .card-img-wrapper {
+        height: 220px;
+        overflow: hidden;
+        background: #f8f9fa;
+        position: relative;
+    }
+
+    .annonce-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .annonce-card:hover .annonce-img {
+        transform: scale(1.15);
+    }
+
+    .card-img-placeholder {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        color: #6c757d;
+    }
+
+    .card-img-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-badges {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 2;
+    }
+
+    .badge-floating {
+        backdrop-filter: blur(10px);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .badge-warning {
+        background: rgba(255, 193, 7, 0.95) !important;
+        color: #000;
+    }
+
+    .card-quick-actions {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+
+    .annonce-card:hover .card-quick-actions {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .card-quick-actions .btn {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-quick-actions .btn:hover {
+        background: white;
+        transform: scale(1.1);
+    }
+
+    .card-footer-meta {
+        border-top: 1px solid #e9ecef;
+        padding-top: 0.75rem;
+    }
+
+    .avatar-sm {
+        font-size: 1.25rem;
+    }
+
+    .view-controls .btn {
+        padding: 0.5rem 1rem;
+    }
+
+    .view-controls .btn.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+</style>
+
+<script>
+    function setView(view) {
+        const grid = document.getElementById('annoncesGrid');
+        const buttons = document.querySelectorAll('.view-controls .btn');
+
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.closest('button').classList.add('active');
+
+        if (view === 'list') {
+            grid.classList.remove('row-cols-md-2', 'row-cols-xl-3');
+            grid.classList.add('row-cols-1');
+        } else {
+            grid.classList.remove('row-cols-1');
+            grid.classList.add('row-cols-md-2', 'row-cols-xl-3');
+        }
+    }
+</script>
 </body>
 </html>

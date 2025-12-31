@@ -4,107 +4,140 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<main class="flex-grow-1 py-4">
+<main class="flex-grow-1 py-4 bg-light">
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>
-                <i class="bi bi-envelope"></i> Messages
-                <span th:if="${unreadCount > 0}" class="badge bg-danger" th:text="${unreadCount}"></span>
-            </h1>
+            <div>
+                <h1 class="mb-1">
+                    <i class="bi bi-envelope-fill text-primary"></i> Messages
+                </h1>
+                <p class="text-muted mb-0" th:if="${unreadCount > 0}">
+                    <span th:text="${unreadCount}"></span> message(s) non lu(s)
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span class="d-none d-md-inline">Actualiser</span>
+                </button>
+            </div>
         </div>
 
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <div th:if="${#lists.isEmpty(conversations)}" class="card shadow">
+                <div th:if="${#lists.isEmpty(conversations)}" class="card shadow-sm border-0">
                     <div class="card-body text-center py-5">
-                        <i class="bi bi-inbox display-1 text-muted"></i>
-                        <h4 class="mt-3">Aucune conversation</h4>
-                        <p class="text-muted">Contactez un donneur pour démarrer une conversation</p>
-                        <a th:href="@{/annonces}" class="btn btn-primary">
+                        <div class="mb-4">
+                            <i class="bi bi-chat-dots display-1 text-muted opacity-50"></i>
+                        </div>
+                        <h4 class="mb-3">Aucune conversation</h4>
+                        <p class="text-muted mb-4">Vous n'avez pas encore de messages.<br>Contactez un donneur pour démarrer une conversation.</p>
+                        <a th:href="@{/annonces}" class="btn btn-primary btn-lg">
                             <i class="bi bi-search"></i> Parcourir les annonces
                         </a>
                     </div>
                 </div>
 
-                <div th:unless="${#lists.isEmpty(conversations)}" class="card shadow">
-                    <div class="list-group list-group-flush">
-                        <!-- Link WITH annonceId parameter -->
-                        <a th:if="${conv.annonceId != null}" th:each="conv : ${conversations}"
-                           th:href="@{/messages/conversation/{id}(id=${conv.partner.id}, annonceId=${conv.annonceId})}"
-                           class="list-group-item list-group-item-action py-3"
-                           th:classappend="${conv.unreadCount > 0} ? 'list-group-item-light border-start border-primary border-3'">
-                            <div class="d-flex w-100 align-items-center">
-                                <div class="me-3 position-relative">
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 56px; height: 56px;">
-                                        <i class="bi bi-person-circle fs-3"></i>
-                                    </div>
-                                    <span th:if="${conv.unreadCount > 0}"
-                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        <span th:text="${conv.unreadCount}"></span>
-                                    </span>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <h6 class="mb-0 fw-bold" th:text="${conv.partner.username}"></h6>
-                                        <small class="text-muted text-nowrap ms-2"
-                                               th:text="${#temporals.format(conv.lastMessage.sentAt, 'dd/MM HH:mm')}"></small>
-                                    </div>
-                                    <p class="mb-1 text-muted small text-truncate"
-                                       th:classappend="${conv.unreadCount > 0} ? 'fw-semibold text-dark'"
-                                       th:text="${conv.lastMessage.content}"></p>
-                                    <div th:if="${conv.annonceTitre != null}" class="mt-2">
-                                        <span class="badge bg-info bg-opacity-10 text-info border border-info">
-                                            <i class="bi bi-tag"></i>
-                                            <span th:text="${conv.annonceTitre}"></span>
+                <div th:unless="${#lists.isEmpty(conversations)}">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-0 py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-inbox-fill text-primary"></i> Boîte de réception
+                                </h5>
+                                <span class="badge bg-primary rounded-pill" th:text="${#lists.size(conversations)}"></span>
+                            </div>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <a th:if="${conv.annonceId != null}" th:each="conv : ${conversations}"
+                               th:href="@{/messages/conversation/{id}(id=${conv.partner.id}, annonceId=${conv.annonceId})}"
+                               class="list-group-item list-group-item-action border-0 py-3 conversation-item"
+                               th:classappend="${conv.unreadCount > 0} ? 'unread-conversation'">
+                                <div class="d-flex w-100 align-items-start">
+                                    <div class="me-3 position-relative flex-shrink-0">
+                                        <div class="avatar-circle">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <span th:if="${conv.unreadCount > 0}"
+                                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse-badge">
+                                            <span th:text="${conv.unreadCount}"></span>
+                                            <span class="visually-hidden">messages non lus</span>
                                         </span>
                                     </div>
+                                    <div class="flex-grow-1 min-width-0">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0 fw-bold text-dark" th:text="${conv.partner.username}"></h6>
+                                            <small class="text-muted text-nowrap ms-2 flex-shrink-0">
+                                                <i class="bi bi-clock"></i>
+                                                <span th:text="${#temporals.format(conv.lastMessage.sentAt, 'dd/MM HH:mm')}"></span>
+                                            </small>
+                                        </div>
+                                        <p class="mb-2 text-truncate message-preview"
+                                           th:classappend="${conv.unreadCount > 0} ? 'fw-semibold text-dark' : 'text-muted'"
+                                           th:text="${conv.lastMessage.content}"></p>
+                                        <div th:if="${conv.annonceTitre != null}" class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="badge rounded-pill"
+                                                  th:classappend="${conv.unreadCount > 0} ? 'bg-primary' : 'bg-light text-dark border'">
+                                                <i class="bi bi-tag-fill"></i>
+                                                <span th:text="${conv.annonceTitre}"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ms-2 flex-shrink-0">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
                                 </div>
-                                <div class="ms-2">
-                                    <i class="bi bi-chevron-right text-muted"></i>
-                                </div>
-                            </div>
-                        </a>
+                            </a>
 
-                        <!-- Link WITHOUT annonceId parameter -->
-                        <a th:if="${conv.annonceId == null}" th:each="conv : ${conversations}"
-                           th:href="@{/messages/conversation/{id}(id=${conv.partner.id})}"
-                           class="list-group-item list-group-item-action py-3"
-                           th:classappend="${conv.unreadCount > 0} ? 'list-group-item-light border-start border-primary border-3'">
-                            <div class="d-flex w-100 align-items-center">
-                                <div class="me-3 position-relative">
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                                         style="width: 56px; height: 56px;">
-                                        <i class="bi bi-person-circle fs-3"></i>
-                                    </div>
-                                    <span th:if="${conv.unreadCount > 0}"
-                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        <span th:text="${conv.unreadCount}"></span>
-                                    </span>
-                                </div>
-                                <div class="flex-grow-1 overflow-hidden">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <h6 class="mb-0 fw-bold" th:text="${conv.partner.username}"></h6>
-                                        <small class="text-muted text-nowrap ms-2"
-                                               th:text="${#temporals.format(conv.lastMessage.sentAt, 'dd/MM HH:mm')}"></small>
-                                    </div>
-                                    <p class="mb-1 text-muted small text-truncate"
-                                       th:classappend="${conv.unreadCount > 0} ? 'fw-semibold text-dark'"
-                                       th:text="${conv.lastMessage.content}"></p>
-                                    <div th:if="${conv.annonceTitre != null}" class="mt-2">
-                                        <span class="badge bg-info bg-opacity-10 text-info border border-info">
-                                            <i class="bi bi-tag"></i>
-                                            <span th:text="${conv.annonceTitre}"></span>
+                            <a th:if="${conv.annonceId == null}" th:each="conv : ${conversations}"
+                               th:href="@{/messages/conversation/{id}(id=${conv.partner.id})}"
+                               class="list-group-item list-group-item-action border-0 py-3 conversation-item"
+                               th:classappend="${conv.unreadCount > 0} ? 'unread-conversation'">
+                                <div class="d-flex w-100 align-items-start">
+                                    <div class="me-3 position-relative flex-shrink-0">
+                                        <div class="avatar-circle">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <span th:if="${conv.unreadCount > 0}"
+                                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger pulse-badge">
+                                            <span th:text="${conv.unreadCount}"></span>
+                                            <span class="visually-hidden">messages non lus</span>
                                         </span>
                                     </div>
+                                    <div class="flex-grow-1 min-width-0">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0 fw-bold text-dark" th:text="${conv.partner.username}"></h6>
+                                            <small class="text-muted text-nowrap ms-2 flex-shrink-0">
+                                                <i class="bi bi-clock"></i>
+                                                <span th:text="${#temporals.format(conv.lastMessage.sentAt, 'dd/MM HH:mm')}"></span>
+                                            </small>
+                                        </div>
+                                        <p class="mb-2 text-truncate message-preview"
+                                           th:classappend="${conv.unreadCount > 0} ? 'fw-semibold text-dark' : 'text-muted'"
+                                           th:text="${conv.lastMessage.content}"></p>
+                                        <div th:if="${conv.annonceTitre != null}" class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="badge rounded-pill"
+                                                  th:classappend="${conv.unreadCount > 0} ? 'bg-primary' : 'bg-light text-dark border'">
+                                                <i class="bi bi-tag-fill"></i>
+                                                <span th:text="${conv.annonceTitre}"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="ms-2 flex-shrink-0">
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </div>
                                 </div>
-                                <div class="ms-2">
-                                    <i class="bi bi-chevron-right text-muted"></i>
-                                </div>
-                            </div>
-                        </a>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted small">
+                            <i class="bi bi-info-circle"></i>
+                            Les messages sont automatiquement actualisés lors du rechargement de la page
+                        </p>
                     </div>
                 </div>
             </div>
@@ -114,5 +147,65 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+<style>
+    .avatar-circle {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .conversation-item {
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent !important;
+    }
+
+    .conversation-item:hover {
+        background-color: #f8f9fa !important;
+        border-left-color: #0d6efd !important;
+        transform: translateX(4px);
+    }
+
+    .unread-conversation {
+        background-color: #f0f7ff !important;
+        border-left-color: #0d6efd !important;
+    }
+
+    .unread-conversation:hover {
+        background-color: #e3f2fd !important;
+    }
+
+    .message-preview {
+        line-height: 1.5;
+        max-height: 3em;
+        overflow: hidden;
+    }
+
+    .pulse-badge {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+    }
+
+    .min-width-0 {
+        min-width: 0;
+    }
+</style>
 </body>
 </html>

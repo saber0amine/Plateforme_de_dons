@@ -4,38 +4,92 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<main class="flex-grow-1 py-4">
+<main class="flex-grow-1 py-4 bg-light">
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="bi bi-card-list"></i> Mes annonces</h1>
-            <a th:href="@{/annonces/new}" class="btn btn-primary">
+            <div>
+                <h1 class="mb-1">
+                    <i class="bi bi-card-list text-primary"></i> Mes annonces
+                </h1>
+                <p class="text-muted mb-0" th:if="${!annonces.isEmpty()}">
+                    Gérez vos <span th:text="${annonces.totalElements}"></span> annonce(s)
+                </p>
+            </div>
+            <a th:href="@{/annonces/new}" class="btn btn-primary btn-lg shadow-sm">
                 <i class="bi bi-plus-circle"></i> Créer une annonce
             </a>
         </div>
 
-        <div th:if="${annonces.isEmpty()}" class="text-center py-5">
-            <i class="bi bi-inbox display-1 text-muted"></i>
-            <h3 class="mt-3">Vous n'avez pas encore d'annonces</h3>
-            <p class="text-muted">Commencez à donner en créant votre première annonce !</p>
-            <a th:href="@{/annonces/new}" class="btn btn-primary btn-lg">
-                <i class="bi bi-plus-circle"></i> Créer ma première annonce
-            </a>
+        <div th:unless="${annonces.isEmpty()}" class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-2">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <h3 class="mb-0 fw-bold" th:text="${#lists.size(annonces.content.?[active && !reserved && !given])}">0</h3>
+                        <small class="text-muted">Actives</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning mb-2">
+                            <i class="bi bi-bookmark-fill"></i>
+                        </div>
+                        <h3 class="mb-0 fw-bold" th:text="${#lists.size(annonces.content.?[reserved && !given])}">0</h3>
+                        <small class="text-muted">Réservées</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success mb-2">
+                            <i class="bi bi-gift-fill"></i>
+                        </div>
+                        <h3 class="mb-0 fw-bold" th:text="${#lists.size(annonces.content.?[given])}">0</h3>
+                        <small class="text-muted">Données</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="stat-icon bg-secondary bg-opacity-10 text-secondary mb-2">
+                            <i class="bi bi-archive-fill"></i>
+                        </div>
+                        <h3 class="mb-0 fw-bold" th:text="${#lists.size(annonces.content.?[!active])}">0</h3>
+                        <small class="text-muted">Inactives</small>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:unless="${annonces.isEmpty()}">
-            <div class="col" th:each="annonce : ${annonces.content}">
-                <div class="card h-100 shadow-sm" th:classappend="${annonce.given} ? 'border-success' : (${annonce.reserved} ? 'border-warning' : '')">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span th:if="${annonce.given}" class="badge bg-success">Donné</span>
-                        <span th:if="${annonce.reserved && !annonce.given}" class="badge bg-warning">Réservé</span>
-                        <span th:if="${!annonce.reserved && !annonce.given && annonce.active}" class="badge bg-primary">Actif</span>
-                        <span th:unless="${annonce.active}" class="badge bg-secondary">Inactif</span>
-                        <small class="text-muted" th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}"></small>
-                    </div>
+        <div th:if="${annonces.isEmpty()}" class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-inbox display-1 text-muted opacity-50"></i>
+                </div>
+                <h3 class="mb-3">Vous n'avez pas encore d'annonces</h3>
+                <p class="text-muted mb-4">
+                    Commencez à donner en créant votre première annonce !<br>
+                    <small>C'est gratuit, facile et vous aidez les autres.</small>
+                </p>
+                <a th:href="@{/annonces/new}" class="btn btn-primary btn-lg shadow-sm">
+                    <i class="bi bi-plus-circle"></i> Créer ma première annonce
+                </a>
+            </div>
+        </div>
 
-                    <!-- Image de l'annonce -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" th:unless="${annonces.isEmpty()}">
+            <div class="col" th:each="annonce : ${annonces.content}">
+                <div class="card h-100 border-0 shadow-sm annonce-card"
+                     th:classappend="${annonce.given} ? 'card-given' : (${annonce.reserved} ? 'card-reserved' : '')">
+
                     <div class="position-relative" style="height: 200px; overflow: hidden;">
                         <img th:if="${annonce.imageUrl != null}"
                              th:src="@{${annonce.imageUrl}}"
@@ -46,30 +100,101 @@
                              class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
                             <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
                         </div>
+
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <div th:if="${annonce.given}" class="status-badge status-given">
+                                <i class="bi bi-check-circle-fill"></i> Donné
+                            </div>
+                            <div th:if="${annonce.reserved && !annonce.given}" class="status-badge status-reserved">
+                                <i class="bi bi-bookmark-fill"></i> Réservé
+                            </div>
+                            <div th:if="${!annonce.reserved && !annonce.given && annonce.active}" class="status-badge status-active">
+                                <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Actif
+                            </div>
+                            <div th:unless="${annonce.active}" class="status-badge status-inactive">
+                                <i class="bi bi-archive-fill"></i> Inactif
+                            </div>
+                        </div>
+
+                        <div class="position-absolute bottom-0 start-0 m-2">
+                            <small class="badge bg-dark bg-opacity-75 text-white">
+                                <i class="bi bi-calendar"></i>
+                                <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}"></span>
+                            </small>
+                        </div>
                     </div>
 
                     <div class="card-body">
-                        <h5 class="card-title" th:text="${annonce.titre}"></h5>
-                        <p class="card-text text-muted small" th:text="${#strings.abbreviate(annonce.description, 80)}"></p>
-                        <div class="d-flex flex-wrap gap-1">
-                            <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
-                            <span class="badge bg-info" th:text="${annonce.modeLivraison.displayName}"></span>
+                        <h5 class="card-title mb-2 fw-bold" th:text="${annonce.titre}"></h5>
+                        <p class="card-text text-muted small mb-3" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
+
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary">
+                                <i class="bi bi-tag-fill"></i>
+                                <span th:text="${annonce.etatObjet.displayName}"></span>
+                            </span>
+                            <span class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info">
+                                <i class="bi bi-truck"></i>
+                                <span th:text="${annonce.modeLivraison.displayName}"></span>
+                            </span>
+                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span th:text="${annonce.zoneGeographique}"></span>
+                            </span>
+                        </div>
+
+                        <div th:if="${annonce.favoriteCount > 0}" class="mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-heart-fill text-danger"></i>
+                                <span th:text="${annonce.favoriteCount}"></span> personne(s) intéressée(s)
+                            </small>
                         </div>
                     </div>
-                    <div class="card-footer">
-                        <div class="btn-group w-100" role="group">
-                            <a th:href="@{/annonces/{id}(id=${annonce.id})}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-eye"></i> Voir
+
+                    <div class="card-footer bg-white border-0 pt-0">
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/annonces/{id}(id=${annonce.id})}"
+                               class="btn btn-sm btn-outline-primary flex-fill" title="Voir">
+                                <i class="bi bi-eye"></i>
+                                <span class="d-none d-lg-inline">Voir</span>
                             </a>
-                            <a th:unless="${annonce.given}" th:href="@{/annonces/{id}/edit(id=${annonce.id})}" class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-pencil"></i> Modifier
+                            <a th:unless="${annonce.given}"
+                               th:href="@{/annonces/{id}/edit(id=${annonce.id})}"
+                               class="btn btn-sm btn-outline-warning flex-fill" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                                <span class="d-none d-lg-inline">Modifier</span>
                             </a>
-                            <form th:unless="${annonce.given}" th:action="@{/annonces/{id}/delete(id=${annonce.id})}" method="post" class="d-inline"
-                                  onsubmit="return confirm('Supprimer cette annonce ?');">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash"></i>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                            </form>
+                                <ul class="dropdown-menu dropdown-menu-end shadow">
+                                    <li th:unless="${annonce.reserved || annonce.given}">
+                                        <form th:action="@{/annonces/{id}/reserve(id=${annonce.id})}" method="post" class="dropdown-item p-0">
+                                            <button type="submit" class="btn btn-link dropdown-item text-warning">
+                                                <i class="bi bi-bookmark"></i> Marquer réservé
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li th:unless="${annonce.given}">
+                                        <form th:action="@{/annonces/{id}/give(id=${annonce.id})}" method="post" class="dropdown-item p-0">
+                                            <button type="submit" class="btn btn-link dropdown-item text-success">
+                                                <i class="bi bi-check-circle"></i> Marquer donné
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form th:action="@{/annonces/{id}/delete(id=${annonce.id})}" method="post" class="dropdown-item p-0"
+                                              onsubmit="return confirm('Supprimer cette annonce ?');">
+                                            <button type="submit" class="btn btn-link dropdown-item text-danger">
+                                                <i class="bi bi-trash"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -82,5 +207,75 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+<style>
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto;
+    }
+
+    .annonce-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .annonce-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .card-given {
+        border-left: 4px solid #198754 !important;
+        background: linear-gradient(to right, #f0f9f4 0%, #ffffff 100%);
+    }
+
+    .card-reserved {
+        border-left: 4px solid #ffc107 !important;
+        background: linear-gradient(to right, #fff9e6 0%, #ffffff 100%);
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-given {
+        background: rgba(25, 135, 84, 0.95);
+        color: white;
+    }
+
+    .status-reserved {
+        background: rgba(255, 193, 7, 0.95);
+        color: #000;
+    }
+
+    .status-active {
+        background: rgba(13, 110, 253, 0.95);
+        color: white;
+    }
+
+    .status-inactive {
+        background: rgba(108, 117, 125, 0.95);
+        color: white;
+    }
+
+    .dropdown-item {
+        cursor: pointer;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>
 </body>
 </html>

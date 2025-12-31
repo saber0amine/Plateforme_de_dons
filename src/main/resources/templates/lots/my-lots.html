@@ -4,58 +4,171 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<main class="flex-grow-1 py-4">
+<main class="flex-grow-1 py-4 bg-light">
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="bi bi-box-seam"></i> Mes lots</h1>
-            <a th:href="@{/lots/new}" class="btn btn-primary">
+            <div>
+                <h1 class="mb-1">
+                    <i class="bi bi-box-seam-fill text-primary"></i> Mes lots
+                </h1>
+                <p class="text-muted mb-0" th:if="${!lots.isEmpty()}">
+                    Gérez vos <span th:text="${lots.totalElements}"></span> lot(s) groupé(s)
+                </p>
+            </div>
+            <a th:href="@{/lots/new}" class="btn btn-primary btn-lg shadow-sm">
                 <i class="bi bi-plus-circle"></i> Créer un lot
             </a>
         </div>
 
-        <div th:if="${lots.isEmpty()}" class="text-center py-5">
-            <i class="bi bi-boxes display-1 text-muted"></i>
-            <h3 class="mt-3">Aucun lot créé</h3>
-            <p class="text-muted">Regroupez vos annonces en lots pour faciliter les transactions groupées</p>
-            <a th:href="@{/lots/new}" class="btn btn-primary btn-lg">
-                <i class="bi bi-plus-circle"></i> Créer mon premier lot
-            </a>
+        <div th:unless="${lots.isEmpty()}" class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3">
+                                <i class="bi bi-box-seam-fill"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-bold" th:text="${#lists.size(lots.content.?[active])}">0</h3>
+                                <small class="text-muted">Lots actifs</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon bg-success bg-opacity-10 text-success me-3">
+                                <i class="bi bi-layers-fill"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-bold" th:text="${#aggregates.sum(lots.content.![#lists.size(annonces)])}">0</h3>
+                                <small class="text-muted">Total d'objets groupés</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:unless="${lots.isEmpty()}">
+        <div th:if="${lots.isEmpty()}" class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-boxes display-1 text-muted opacity-50"></i>
+                </div>
+                <h3 class="mb-3">Aucun lot créé</h3>
+                <p class="text-muted mb-4">
+                    Les lots vous permettent de regrouper plusieurs objets ensemble.<br>
+                    <small>Idéal pour les transactions groupées et faciliter les dons multiples.</small>
+                </p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a th:href="@{/lots/new}" class="btn btn-primary btn-lg shadow-sm">
+                        <i class="bi bi-plus-circle"></i> Créer mon premier lot
+                    </a>
+                    <a th:href="@{/annonces/new}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-plus"></i> Ou créer une annonce
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" th:unless="${lots.isEmpty()}">
             <div class="col" th:each="lot : ${lots.content}">
-                <div class="card h-100 shadow-sm">
-                    <div th:if="${lot.primaryImage != null}">
-                        <img th:src="@{/api/images/{id}(id=${lot.primaryImage.id})}"
-                             class="card-img-top" alt="Image" style="height: 200px; object-fit: cover;">
+                <div class="card h-100 border-0 shadow-sm lot-card"
+                     th:classappend="${!lot.active} ? 'lot-inactive' : ''">
+
+                    <div class="position-relative" style="height: 200px; overflow: hidden;">
+                        <div th:if="${lot.primaryImage != null}">
+                            <img th:src="@{/api/images/{id}(id=${lot.primaryImage.id})}"
+                                 class="w-100 h-100" style="object-fit: cover;" alt="Image">
+                        </div>
+                        <div th:unless="${lot.primaryImage != null}"
+                             class="w-100 h-100 bg-gradient d-flex flex-column align-items-center justify-content-center">
+                            <i class="bi bi-box-seam text-white opacity-50" style="font-size: 4rem;"></i>
+                            <span class="text-white mt-2">Pas d'image</span>
+                        </div>
+
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <div th:if="${lot.active}" class="status-badge status-active">
+                                <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Actif
+                            </div>
+                            <div th:unless="${lot.active}" class="status-badge status-inactive">
+                                <i class="bi bi-archive-fill"></i> Inactif
+                            </div>
+                        </div>
+
+                        <div class="position-absolute bottom-0 start-0 w-100 p-2 lot-overlay">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-white text-dark shadow-sm">
+                                    <i class="bi bi-stack"></i>
+                                    <strong th:text="${#lists.size(lot.annonces)}">0</strong> objet(s)
+                                </span>
+                                <small class="text-white">
+                                    <i class="bi bi-calendar"></i>
+                                    <span th:text="${#temporals.format(lot.createdAt, 'dd/MM/yyyy')}"></span>
+                                </small>
+                            </div>
+                        </div>
                     </div>
-                    <div th:unless="${lot.primaryImage != null}" class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <i class="bi bi-box-seam text-muted" style="font-size: 3rem;"></i>
-                    </div>
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                            <span class="badge" th:classappend="${lot.active} ? 'bg-primary' : 'bg-secondary'"
-                                  th:text="${#lists.size(lot.annonces)} + ' objet(s)'"></span>
-                        <span th:unless="${lot.active}" class="badge bg-secondary">Inactif</span>
-                    </div>
+
                     <div class="card-body">
-                        <h5 class="card-title" th:text="${lot.titre}"></h5>
-                        <p class="card-text text-muted" th:if="${lot.description}"
-                           th:text="${#strings.abbreviate(lot.description, 80)}"></p>
+                        <h5 class="card-title mb-2 fw-bold" th:text="${lot.titre}"></h5>
+                        <p class="card-text text-muted small mb-3"
+                           th:if="${lot.description}"
+                           th:text="${#strings.abbreviate(lot.description, 100)}"></p>
+                        <p class="card-text text-muted small mb-3"
+                           th:unless="${lot.description}">
+                            <em>Aucune description</em>
+                        </p>
+
+                        <div th:if="${!lot.annonces.isEmpty()}" class="mb-3">
+                            <h6 class="text-muted small mb-2">
+                                <i class="bi bi-list-ul"></i> Contient :
+                            </h6>
+                            <div class="annonce-pills">
+                                <span th:each="annonce, iterStat : ${lot.annonces}"
+                                      th:if="${iterStat.index < 3}"
+                                      class="badge rounded-pill bg-light text-dark border mb-1 me-1">
+                                    <i class="bi bi-dot"></i>
+                                    <span th:text="${#strings.abbreviate(annonce.titre, 20)}"></span>
+                                </span>
+                                <span th:if="${#lists.size(lot.annonces) > 3}"
+                                      class="badge rounded-pill bg-primary mb-1">
+                                    +<span th:text="${#lists.size(lot.annonces) - 3}"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div th:if="${lot.annonces.isEmpty()}" class="alert alert-warning py-2 mb-3">
+                            <small>
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Aucun objet dans ce lot
+                            </small>
+                        </div>
                     </div>
-                    <div class="card-footer">
-                        <div class="btn-group w-100" role="group">
-                            <a th:href="@{/lots/{id}(id=${lot.id})}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-eye"></i> Voir
+
+                    <div class="card-footer bg-white border-0 pt-0">
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/lots/{id}(id=${lot.id})}"
+                               class="btn btn-sm btn-outline-primary flex-fill" title="Voir">
+                                <i class="bi bi-eye"></i>
+                                <span class="d-none d-lg-inline">Voir</span>
                             </a>
-                            <a th:href="@{/lots/{id}/edit(id=${lot.id})}" class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-pencil"></i> Modifier
+                            <a th:href="@{/lots/{id}/edit(id=${lot.id})}"
+                               class="btn btn-sm btn-outline-warning flex-fill" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                                <span class="d-none d-lg-inline">Modifier</span>
                             </a>
-                            <form th:action="@{/lots/{id}/delete(id=${lot.id})}" method="post" class="d-inline"
-                                  onsubmit="return confirm('Supprimer ce lot ?');">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                            <form th:action="@{/lots/{id}/delete(id=${lot.id})}" method="post"
+                                  onsubmit="return confirm('Supprimer ce lot ? Les annonces seront conservées.');"
+                                  class="flex-fill">
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100" title="Supprimer">
                                     <i class="bi bi-trash"></i>
+                                    <span class="d-none d-lg-inline">Supprimer</span>
                                 </button>
                             </form>
                         </div>
@@ -65,10 +178,90 @@
         </div>
 
         <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/lots/mes-lots')}"></div>
+
+        <div th:unless="${lots.isEmpty()}" class="card border-0 shadow-sm mt-4 bg-primary bg-opacity-10">
+            <div class="card-body">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-lightbulb-fill text-primary me-3 fs-4"></i>
+                    <div>
+                        <h6 class="fw-bold mb-2">Astuce : Maximisez vos dons</h6>
+                        <p class="text-muted small mb-0">
+                            Regroupez plusieurs objets similaires ou complémentaires dans un lot pour faciliter
+                            les transactions groupées. Les receveurs apprécient de pouvoir récupérer plusieurs
+                            objets en une seule fois !
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+<style>
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .lot-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .lot-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .lot-inactive {
+        opacity: 0.7;
+        background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
+    }
+
+    .bg-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .lot-overlay {
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-active {
+        background: rgba(25, 135, 84, 0.95);
+        color: white;
+    }
+
+    .status-inactive {
+        background: rgba(108, 117, 125, 0.95);
+        color: white;
+    }
+
+    .annonce-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .annonce-pills .badge {
+        font-weight: 500;
+    }
+</style>
 </body>
 </html>

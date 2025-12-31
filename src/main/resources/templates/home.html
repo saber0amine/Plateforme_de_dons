@@ -6,117 +6,256 @@
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
 <main class="flex-grow-1">
-    <div class="bg-primary text-white py-5 mb-4">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold">Donnez une seconde vie à vos objets</h1>
-                    <p class="lead">Plateforme gratuite de dons entre particuliers. Donnez ce dont vous n'avez plus besoin, trouvez ce qu'il vous faut.</p>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                        <a th:href="@{/search}" class="btn btn-light btn-lg px-4 me-md-2">
-                            <i class="bi bi-search"></i> Rechercher
-                        </a>
-                        <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()" class="btn btn-outline-light btn-lg px-4">
-                            <i class="bi bi-plus-circle"></i> Donner un objet
-                        </a>
-                        <a th:href="@{/register}" sec:authorize="!isAuthenticated()" class="btn btn-outline-light btn-lg px-4">
-                            <i class="bi bi-person-plus"></i> S'inscrire
-                        </a>
+    <div class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="container position-relative">
+            <div class="row align-items-center min-vh-50">
+                <div class="col-lg-7 text-white">
+                    <div class="hero-content animate-fadeInUp">
+                        <span class="badge hero-badge mb-3">
+                            <i class="bi bi-stars"></i> Plateforme 100% Gratuite
+                        </span>
+                        <h1 class="display-3 fw-bold mb-4">
+                            Donnez une seconde vie à vos objets
+                        </h1>
+                        <p class="lead mb-4 text-white-50">
+                            Rejoignez une communauté solidaire où chaque objet trouve preneur.
+                            Donnez ce que vous n'utilisez plus, trouvez ce dont vous avez besoin.
+                        </p>
+                        <div class="hero-search-box mb-4">
+                            <form th:action="@{/search}" method="get" class="search-form">
+                                <div class="input-group input-group-lg shadow-lg">
+                                    <span class="input-group-text bg-white border-0">
+                                        <i class="bi bi-search text-primary"></i>
+                                    </span>
+                                    <input type="text" name="query" class="form-control border-0"
+                                           placeholder="Rechercher des objets... (meubles, électronique, vêtements...)"
+                                           style="padding: 1rem;">
+                                    <button type="submit" class="btn btn-primary px-4 border-0">
+                                        <i class="bi bi-search"></i> Rechercher
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()"
+                               class="btn btn-light btn-lg px-4 shadow">
+                                <i class="bi bi-plus-circle"></i> Donner un objet
+                            </a>
+                            <a th:href="@{/annonces}" class="btn btn-outline-light btn-lg px-4">
+                                <i class="bi bi-grid"></i> Parcourir les annonces
+                            </a>
+                            <a th:href="@{/register}" sec:authorize="!isAuthenticated()"
+                               class="btn btn-success btn-lg px-4 shadow">
+                                <i class="bi bi-person-plus"></i> Rejoindre gratuitement
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <div class="col-lg-6 text-center">
-                    <i class="bi bi-gift display-1" style="font-size: 10rem; opacity: 0.5;"></i>
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="hero-illustration animate-float">
+                        <i class="bi bi-gift-fill text-white opacity-25" style="font-size: 20rem;"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container">
+    <div class="stats-section py-4 bg-white shadow-sm">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-icon text-primary mb-2">
+                            <i class="bi bi-box-seam-fill"></i>
+                        </div>
+                        <h3 class="stat-number mb-0">1000+</h3>
+                        <small class="text-muted">Objets donnés</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-icon text-success mb-2">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h3 class="stat-number mb-0">500+</h3>
+                        <small class="text-muted">Membres actifs</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-icon text-warning mb-2">
+                            <i class="bi bi-emoji-smile-fill"></i>
+                        </div>
+                        <h3 class="stat-number mb-0">98%</h3>
+                        <small class="text-muted">Satisfaction</small>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-icon text-info mb-2">
+                            <i class="bi bi-lightning-fill"></i>
+                        </div>
+                        <h3 class="stat-number mb-0">24h</h3>
+                        <small class="text-muted">Temps moyen</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-5">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
         <section class="mb-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="bi bi-clock-history"></i> Dernières annonces</h2>
-                <a th:href="@{/annonces}" class="btn btn-outline-primary">Voir toutes les annonces</a>
+                <div>
+                    <h2 class="fw-bold mb-2">
+                        <i class="bi bi-fire text-danger"></i> Dernières annonces
+                    </h2>
+                    <p class="text-muted mb-0">Découvrez les objets récemment ajoutés</p>
+                </div>
+                <a th:href="@{/annonces}" class="btn btn-outline-primary">
+                    Tout voir <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
 
-            <div th:if="${#lists.isEmpty(annonces)}" class="alert alert-info">
-                <i class="bi bi-info-circle"></i> Aucune annonce pour le moment. Soyez le premier à donner !
+            <div th:if="${#lists.isEmpty(annonces)}" class="text-center py-5">
+                <div class="empty-state">
+                    <i class="bi bi-inbox display-1 text-muted opacity-50 mb-3"></i>
+                    <h4>Aucune annonce pour le moment</h4>
+                    <p class="text-muted">Soyez le premier à donner !</p>
+                    <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()"
+                       class="btn btn-primary btn-lg mt-3">
+                        <i class="bi bi-plus-circle"></i> Créer la première annonce
+                    </a>
+                </div>
             </div>
 
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" th:unless="${#lists.isEmpty(annonces)}">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4"
+                 th:unless="${#lists.isEmpty(annonces)}">
                 <div class="col" th:each="annonce : ${annonces}">
-                    <div class="card h-100 shadow-sm">
-                        <!-- Image de l'annonce -->
-                        <div class="position-relative" style="height: 200px; overflow: hidden;">
+                    <div class="card annonce-card h-100 border-0 shadow-sm">
+                        <div class="card-img-wrapper position-relative">
                             <img th:if="${annonce.imageUrl != null}"
                                  th:src="@{${annonce.imageUrl}}"
-                                 class="card-img-top w-100 h-100"
-                                 style="object-fit: cover;"
+                                 class="card-img-top annonce-img"
                                  th:alt="${annonce.titre}">
                             <div th:unless="${annonce.imageUrl != null}"
-                                 class="w-100 h-100 bg-light d-flex align-items-center justify-content-center">
-                                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                                 class="card-img-placeholder">
+                                <i class="bi bi-image"></i>
+                                <span>Pas d'image</span>
+                            </div>
+
+                            <div class="card-badges">
+                                <span th:if="${annonce.reserved}"
+                                      class="badge badge-floating badge-warning">
+                                    <i class="bi bi-bookmark-fill"></i> Réservé
+                                </span>
+                                <span class="badge badge-floating badge-primary">
+                                    <i class="bi bi-tag-fill"></i>
+                                    <span th:text="${annonce.etatObjet.displayName}"></span>
+                                </span>
                             </div>
                         </div>
 
-                        <div class="card-body">
-                            <h5 class="card-title">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold mb-2">
                                 <a th:href="@{/annonces/{id}(id=${annonce.id})}"
-                                   th:text="${annonce.titre}" class="text-decoration-none"></a>
+                                   class="text-decoration-none text-dark stretched-link"
+                                   th:text="${annonce.titre}"></a>
                             </h5>
-                            <p class="card-text text-muted" th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
-                            <div class="d-flex flex-wrap gap-1 mb-2">
-                                <span class="badge bg-secondary" th:text="${annonce.etatObjet.displayName}"></span>
-                                <span class="badge bg-info" th:text="${annonce.modeLivraison.displayName}"></span>
+
+                            <p class="card-text text-muted small mb-3 flex-grow-1"
+                               th:text="${#strings.abbreviate(annonce.description, 100)}"></p>
+
+                            <div class="card-meta">
+                                <div class="d-flex align-items-center text-muted small mb-2">
+                                    <i class="bi bi-geo-alt-fill text-primary me-1"></i>
+                                    <span th:text="${annonce.zoneGeographique}"></span>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center text-muted small">
+                                        <i class="bi bi-person-circle me-1"></i>
+                                        <span th:text="${annonce.ownerUsername}"></span>
+                                    </div>
+                                    <div class="d-flex align-items-center text-muted small">
+                                        <i class="bi bi-clock me-1"></i>
+                                        <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM')}"></span>
+                                    </div>
+                                </div>
                             </div>
-                            <small class="text-muted">
-                                <i class="bi bi-geo-alt"></i> <span th:text="${annonce.zoneGeographique}"></span>
-                            </small>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <small class="text-muted">
-                                <i class="bi bi-person"></i> <span th:text="${annonce.ownerUsername}"></span>
-                                <br>
-                                <i class="bi bi-calendar"></i>
-                                <span th:text="${#temporals.format(annonce.datePublication, 'dd/MM/yyyy')}"></span>
-                            </small>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="mb-5">
-            <h2 class="text-center mb-4">Comment ça marche ?</h2>
+        <section class="how-it-works bg-light rounded-4 p-5 mb-5">
+            <h2 class="text-center fw-bold mb-5">Comment ça marche ?</h2>
             <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="text-center p-4">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                            <i class="bi bi-camera fs-1"></i>
+                    <div class="feature-card text-center p-4">
+                        <div class="feature-icon-wrapper mb-4">
+                            <div class="feature-icon bg-primary">
+                                <i class="bi bi-camera-fill"></i>
+                            </div>
+                            <div class="feature-number">1</div>
                         </div>
-                        <h4>1. Publiez votre annonce</h4>
-                        <p class="text-muted">Décrivez l'objet que vous souhaitez donner avec une description et l'état.</p>
+                        <h4 class="fw-bold mb-3">Publiez votre annonce</h4>
+                        <p class="text-muted">
+                            Prenez une photo, décrivez l'objet et publiez votre annonce en quelques clics.
+                        </p>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="text-center p-4">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                            <i class="bi bi-chat-dots fs-1"></i>
+                    <div class="feature-card text-center p-4">
+                        <div class="feature-icon-wrapper mb-4">
+                            <div class="feature-icon bg-success">
+                                <i class="bi bi-chat-dots-fill"></i>
+                            </div>
+                            <div class="feature-number">2</div>
                         </div>
-                        <h4>2. Échangez</h4>
-                        <p class="text-muted">Discutez avec les personnes intéressées via notre messagerie interne.</p>
+                        <h4 class="fw-bold mb-3">Échangez avec les intéressés</h4>
+                        <p class="text-muted">
+                            Discutez via notre messagerie sécurisée pour organiser la remise.
+                        </p>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="text-center p-4">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                            <i class="bi bi-hand-thumbs-up fs-1"></i>
+                    <div class="feature-card text-center p-4">
+                        <div class="feature-icon-wrapper mb-4">
+                            <div class="feature-icon bg-warning">
+                                <i class="bi bi-hand-thumbs-up-fill"></i>
+                            </div>
+                            <div class="feature-number">3</div>
                         </div>
-                        <h4>3. Donnez</h4>
-                        <p class="text-muted">Remettez l'objet en main propre ou envoyez-le selon vos préférences.</p>
+                        <h4 class="fw-bold mb-3">Donnez et faites heureux</h4>
+                        <p class="text-muted">
+                            Remettez l'objet et contribuez à une consommation plus responsable.
+                        </p>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="cta-section text-center bg-gradient-primary text-white rounded-4 p-5">
+            <h2 class="fw-bold mb-3">Prêt à donner ou recevoir ?</h2>
+            <p class="lead mb-4 text-white-50">
+                Rejoignez notre communauté et participez à l'économie circulaire
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a th:href="@{/annonces/new}" sec:authorize="isAuthenticated()"
+                   class="btn btn-light btn-lg px-4 shadow">
+                    <i class="bi bi-plus-circle"></i> Publier une annonce
+                </a>
+                <a th:href="@{/register}" sec:authorize="!isAuthenticated()"
+                   class="btn btn-light btn-lg px-4 shadow">
+                    <i class="bi bi-person-plus"></i> Créer un compte gratuit
+                </a>
+                <a th:href="@{/annonces}" class="btn btn-outline-light btn-lg px-4">
+                    <i class="bi bi-search"></i> Parcourir les annonces
+                </a>
             </div>
         </section>
     </div>
@@ -124,5 +263,219 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="white" opacity="0.1"/></svg>');
+        opacity: 0.3;
+    }
+
+    .min-vh-50 {
+        min-height: 50vh;
+    }
+
+    .hero-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 500;
+    }
+
+    .hero-content {
+        padding: 2rem 0;
+    }
+
+    .animate-fadeInUp {
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-float {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .search-form .input-group {
+        border-radius: 50px;
+        overflow: hidden;
+    }
+
+    .search-form .form-control:focus {
+        box-shadow: none;
+    }
+
+    .stats-section {
+        margin-top: -30px;
+    }
+
+    .stat-item {
+        padding: 1rem;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #212529;
+    }
+
+    .annonce-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .annonce-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .card-img-wrapper {
+        height: 200px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+
+    .annonce-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .annonce-card:hover .annonce-img {
+        transform: scale(1.1);
+    }
+
+    .card-img-placeholder {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+        color: #6c757d;
+    }
+
+    .card-img-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-badges {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+    }
+
+    .badge-floating {
+        backdrop-filter: blur(10px);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .badge-warning {
+        background: rgba(255, 193, 7, 0.95) !important;
+        color: #000;
+    }
+
+    .badge-primary {
+        background: rgba(13, 110, 253, 0.95) !important;
+        color: white;
+    }
+
+    .card-meta {
+        border-top: 1px solid #e9ecef;
+        padding-top: 0.75rem;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-icon-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        position: relative;
+        z-index: 1;
+    }
+
+    .feature-number {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 32px;
+        height: 32px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 2;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+</style>
 </body>
 </html>

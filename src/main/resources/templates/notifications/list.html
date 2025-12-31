@@ -4,71 +4,212 @@
 <body class="d-flex flex-column min-vh-100">
 <nav th:replace="~{fragments/layout :: navbar}"></nav>
 
-<main class="flex-grow-1 py-4">
+<main class="flex-grow-1 py-4 bg-light">
     <div class="container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>
-                <i class="bi bi-bell"></i> Notifications
-                <span th:if="${unreadCount > 0}" class="badge bg-danger" th:text="${unreadCount}"></span>
-            </h1>
-            <form th:if="${unreadCount > 0}" th:action="@{/notifications/mark-all-read}" method="post">
-                <button type="submit" class="btn btn-outline-primary">
-                    <i class="bi bi-check-all"></i> Tout marquer comme lu
+            <div>
+                <h1 class="mb-1">
+                    <i class="bi bi-bell-fill text-warning"></i> Notifications
+                </h1>
+                <p class="text-muted mb-0" th:if="${unreadCount > 0}">
+                    <span class="badge bg-warning text-dark rounded-pill">
+                        <span th:text="${unreadCount}"></span> non lu(s)
+                    </span>
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <form th:if="${unreadCount > 0}" th:action="@{/notifications/mark-all-read}" method="post">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-check-all"></i>
+                        <span class="d-none d-md-inline">Tout marquer comme lu</span>
+                    </button>
+                </form>
+                <button class="btn btn-outline-secondary" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span class="d-none d-md-inline">Actualiser</span>
                 </button>
-            </form>
+            </div>
         </div>
 
-        <div th:if="${notifications.isEmpty()}" class="text-center py-5">
-            <i class="bi bi-bell-slash display-1 text-muted"></i>
-            <h3 class="mt-3">Aucune notification</h3>
-            <p class="text-muted">Vous recevrez des notifications pour les nouvelles annonces correspondant à vos recherches</p>
-        </div>
-
-        <div class="list-group shadow" th:unless="${notifications.isEmpty()}">
-            <a th:each="notif : ${notifications.content}"
-               th:href="@{/notifications/{id}/click(id=${notif.id})}"
-               class="list-group-item list-group-item-action"
-               th:classappend="${!notif.read} ? 'list-group-item-light'">
-                <div class="d-flex w-100 justify-content-between align-items-start">
-                    <div class="d-flex align-items-start">
-                        <div class="me-3">
-                            <i th:switch="${notif.type.name()}">
-                                <span th:case="'NEW_ANNONCE_MATCH'" class="bi bi-tag-fill text-primary fs-4"></span>
-                                <span th:case="'NEW_MESSAGE'" class="bi bi-envelope-fill text-info fs-4"></span>
-                                <span th:case="'ANNONCE_RESERVED'" class="bi bi-bookmark-fill text-warning fs-4"></span>
-                                <span th:case="'ANNONCE_GIVEN'" class="bi bi-gift-fill text-success fs-4"></span>
-                                <span th:case="*" class="bi bi-bell-fill text-secondary fs-4"></span>
-                            </i>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div th:if="${notifications.isEmpty()}" class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-bell-slash display-1 text-muted opacity-50"></i>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center mb-1">
-                                <span th:if="${!notif.read}" class="badge bg-primary me-2">Nouveau</span>
-                                <h6 class="mb-0" th:text="${notif.title}"></h6>
-                            </div>
-                            <p class="mb-2 text-muted" th:text="${notif.message}"></p>
-
-                            <div class="d-flex gap-2 flex-wrap">
-                                    <span th:if="${notif.sender != null}" class="badge bg-light text-dark">
-                                        <i class="bi bi-person"></i> <span th:text="${notif.sender.username}"></span>
-                                    </span>
-                                <span th:if="${notif.annonce != null}" class="badge bg-light text-dark">
-                                        <i class="bi bi-tag"></i> <span th:text="${notif.annonce.titre}"></span>
-                                    </span>
-                            </div>
+                        <h4 class="mb-3">Aucune notification</h4>
+                        <p class="text-muted mb-4">
+                            Vous recevrez des notifications pour :<br>
+                            <small>
+                                • Nouvelles annonces correspondant à vos recherches<br>
+                                • Nouveaux messages<br>
+                                • Annonces réservées ou données
+                            </small>
+                        </p>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                            <a th:href="@{/saved-searches}" class="btn btn-outline-primary">
+                                <i class="bi bi-bookmark"></i> Mes recherches sauvegardées
+                            </a>
+                            <a th:href="@{/annonces}" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Parcourir les annonces
+                            </a>
                         </div>
                     </div>
-                    <small class="text-muted text-nowrap ms-2" th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}"></small>
                 </div>
-            </a>
-        </div>
 
-        <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/notifications')}"></div>
+                <div th:unless="${notifications.isEmpty()}">
+                    <div class="notification-list">
+                        <a th:each="notif : ${notifications.content}"
+                           th:href="@{/notifications/{id}/click(id=${notif.id})}"
+                           class="notification-card text-decoration-none"
+                           th:classappend="${!notif.read} ? 'notification-unread' : 'notification-read'">
+                            <div class="card shadow-sm border-0 mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="notification-icon me-3 flex-shrink-0">
+                                            <div th:switch="${notif.type.name()}" class="icon-wrapper">
+                                                <div th:case="'NEW_ANNONCE_MATCH'" class="icon-circle bg-primary">
+                                                    <i class="bi bi-tag-fill"></i>
+                                                </div>
+                                                <div th:case="'NEW_MESSAGE'" class="icon-circle bg-info">
+                                                    <i class="bi bi-envelope-fill"></i>
+                                                </div>
+                                                <div th:case="'ANNONCE_RESERVED'" class="icon-circle bg-warning">
+                                                    <i class="bi bi-bookmark-fill"></i>
+                                                </div>
+                                                <div th:case="'ANNONCE_GIVEN'" class="icon-circle bg-success">
+                                                    <i class="bi bi-gift-fill"></i>
+                                                </div>
+                                                <div th:case="*" class="icon-circle bg-secondary">
+                                                    <i class="bi bi-bell-fill"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 min-width-0">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                    <span th:if="${!notif.read}" class="badge bg-warning text-dark pulse-badge">
+                                                        Nouveau
+                                                    </span>
+                                                    <h6 class="mb-0 fw-bold text-dark" th:text="${notif.title}"></h6>
+                                                </div>
+                                                <small class="text-muted text-nowrap ms-2 flex-shrink-0">
+                                                    <i class="bi bi-clock"></i>
+                                                    <span th:text="${#temporals.format(notif.createdAt, 'dd/MM HH:mm')}"></span>
+                                                </small>
+                                            </div>
+                                            <p class="mb-2 text-muted notification-message" th:text="${notif.message}"></p>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <span th:if="${notif.sender != null}" class="badge bg-light text-dark border">
+                                                    <i class="bi bi-person-fill"></i>
+                                                    <span th:text="${notif.sender.username}"></span>
+                                                </span>
+                                                <span th:if="${notif.annonce != null}" class="badge bg-light text-dark border">
+                                                    <i class="bi bi-tag"></i>
+                                                    <span th:text="${#strings.abbreviate(notif.annonce.titre, 30)}"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="ms-2 flex-shrink-0">
+                                            <i class="bi bi-chevron-right text-muted"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div th:replace="~{fragments/layout :: pagination(${currentPage}, ${totalPages}, '/notifications')}"></div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted small">
+                            <i class="bi bi-info-circle"></i>
+                            Les notifications sont conservées pendant 30 jours
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/layout :: scripts}"></div>
+
+<style>
+    .notification-card {
+        display: block;
+        transition: all 0.2s ease;
+    }
+
+    .notification-card:hover {
+        transform: translateX(4px);
+    }
+
+    .notification-card .card {
+        transition: all 0.2s ease;
+    }
+
+    .notification-card:hover .card {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .notification-unread .card {
+        background: linear-gradient(to right, #fff9e6 0%, #ffffff 100%);
+        border-left: 4px solid #ffc107 !important;
+    }
+
+    .notification-read .card {
+        background: white;
+        opacity: 0.85;
+    }
+
+    .notification-read:hover .card {
+        opacity: 1;
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .notification-message {
+        line-height: 1.5;
+        font-size: 0.95rem;
+    }
+
+    .pulse-badge {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+    }
+
+    .min-width-0 {
+        min-width: 0;
+    }
+
+    .notification-list > a:last-child .card {
+        margin-bottom: 0 !important;
+    }
+</style>
 </body>
 </html>
